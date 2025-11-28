@@ -17,4 +17,42 @@ public class DatabaseConnection {
         usr = "root";
         pass = "";
     }
+
+    public boolean registerUser(String username, String password){
+        try (Connection conn = getConnection()) {
+            String query = "INSERT INTO astronout_user (astronout_username, astronout_password) VALUES (?, ?)";
+            PreparedStatement ps = conn.prepareStatement(query);
+
+            ps.setString(1, username);
+            ps.setString(2, password);
+            ps.executeUpdate();
+
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public int loginUser(String username, String password) {
+        int astronoutId = 0;
+
+        try (Connection conn = getConnection()) {
+            String query = "SELECT astronout_id FROM astronout_user WHERE astronout_username = ? AND astronout_password = ?";
+            PreparedStatement ps = conn.prepareStatement(query);
+
+            ps.setString(1, username);
+            ps.setString(2, password);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                astronoutId =  rs.getInt("astronout_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return astronoutId;
+    }
 }

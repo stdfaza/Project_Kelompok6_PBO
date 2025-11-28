@@ -7,10 +7,14 @@ public class Main extends JFrame {
     private LoginPage loginPage;
     private Game gamePage; // Tambahkan referensi Game
 
+    // Variabel Login
+    private int currentAstronoutId;
+    private String currentAstronoutUsername;
+
     public Main() {
         setTitle("Astronout: Survive in the Outer Planet");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(900, 700); // Sedikit diperbesar agar lega
+        setSize(1280, 720); // Sedikit diperbesar agar lega
         setLocationRelativeTo(null);
 
         cardLayout = new CardLayout();
@@ -28,7 +32,7 @@ public class Main extends JFrame {
         
         // Ubah ini ke "GamePage" jika ingin langsung tes game tanpa login, 
         // atau biarkan "LoginPage" untuk alur normal.
-        showPage("GamePage"); 
+        showPage("LoginPage"); 
     }
 
     public void showPage(String page) {
@@ -37,6 +41,19 @@ public class Main extends JFrame {
         if (page.equals("GamePage")) {
             gamePage.startGame();
         }
+    }
+
+    public void onLoginSuccess(int id, String username) {
+        currentAstronoutId = id;
+        currentAstronoutUsername = username;
+    }
+
+    public int getCurrentAstronoutId() {
+        return currentAstronoutId;
+    }
+
+    public String getCurrentAstronoutUsername() {
+        return currentAstronoutUsername;
     }
 
     public static void main(String[] args) {
