@@ -5,7 +5,8 @@ public class Main extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainPage;
     private LoginPage loginPage;
-    private Game gamePage; // Tambahkan referensi Game
+    private HomePage homePage;  // ⬅ Tambah ini
+    private Game gamePage;
 
     // Variabel Login
     private int currentAstronoutId;
@@ -14,30 +15,30 @@ public class Main extends JFrame {
     public Main() {
         setTitle("Astronout: Survive in the Outer Planet");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(1280, 720); // Sedikit diperbesar agar lega
+        setSize(1280, 720);
         setLocationRelativeTo(null);
 
         cardLayout = new CardLayout();
         mainPage = new JPanel(cardLayout);
 
-        // Inisialisasi Halaman
+        // Inisialisasi halaman
         loginPage = new LoginPage(this);
-        gamePage = new Game(this); // Inisialisasi Game Page
+        homePage = new HomePage(this);          // ⬅ Tambah ini
+        gamePage = new Game(this);
 
-        // Tambah ke mainPage dengan nama unik
+        // Add ke card layout
         mainPage.add(loginPage, "LoginPage");
+        mainPage.add(homePage, "HomePage"); // ⬅ Tambah ini
         mainPage.add(gamePage, "GamePage");
 
         add(mainPage);
-        
-        // Ubah ini ke "GamePage" jika ingin langsung tes game tanpa login, 
-        // atau biarkan "LoginPage" untuk alur normal.
-        showPage("LoginPage"); 
+
+        showPage("LoginPage");
     }
 
     public void showPage(String page) {
         cardLayout.show(mainPage, page);
-        // Jika masuk ke GamePage, reset/mulai game
+
         if (page.equals("GamePage")) {
             gamePage.startGame();
         }
@@ -46,6 +47,9 @@ public class Main extends JFrame {
     public void onLoginSuccess(int id, String username) {
         currentAstronoutId = id;
         currentAstronoutUsername = username;
+
+        // ⬅ Setelah login → pindah ke HomePage
+        showPage("HomePage");
     }
 
     public int getCurrentAstronoutId() {
@@ -57,8 +61,6 @@ public class Main extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new Main().setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> new Main().setVisible(true));
     }
 }
