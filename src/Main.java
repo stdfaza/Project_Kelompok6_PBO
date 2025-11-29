@@ -5,8 +5,9 @@ public class Main extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainPage;
     private LoginPage loginPage;
-    private HomePage homePage;  // ⬅ Tambah ini
+    private HomePage homePage;
     private Game gamePage;
+    private ScenePage scenePage;
 
     // Variabel Login
     private int currentAstronoutId;
@@ -23,17 +24,19 @@ public class Main extends JFrame {
 
         // Inisialisasi halaman
         loginPage = new LoginPage(this);
-        homePage = new HomePage(this);          // ⬅ Tambah ini
+        homePage = new HomePage(this);
         gamePage = new Game(this);
+        scenePage = new ScenePage(this);
 
         // Add ke card layout
         mainPage.add(loginPage, "LoginPage");
-        mainPage.add(homePage, "HomePage"); // ⬅ Tambah ini
+        mainPage.add(homePage, "HomePage");
         mainPage.add(gamePage, "GamePage");
+        mainPage.add(scenePage, "ScenePage");
 
         add(mainPage);
 
-        showPage("LoginPage");
+        showPage("GamePage");
     }
 
     public void showPage(String page) {
@@ -42,6 +45,15 @@ public class Main extends JFrame {
         if (page.equals("GamePage")) {
             gamePage.startGame();
         }
+    }
+
+    public void showScene(Scene s) {
+        scenePage.loadScene(s);
+        cardLayout.show(mainPage, "ScenePage");
+    }
+
+    public void showGame() {
+        cardLayout.show(mainPage, "GamePage");
     }
 
     public void onLoginSuccess(int id, String username) {

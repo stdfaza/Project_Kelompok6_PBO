@@ -1,5 +1,9 @@
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 
 public class Game extends JPanel {
     private Main main;
@@ -12,6 +16,9 @@ public class Game extends JPanel {
     private int starvationDays; // Counter hari tanpa makan
     private boolean isGameOver;
 
+    // Scene
+    private List<Scene> scenes = new ArrayList<>();
+
     // UI Components
     private JLabel dayLabel, oxygenLabel, foodLabel, powerLabel;
     private JTextArea logArea;
@@ -19,6 +26,7 @@ public class Game extends JPanel {
 
     public Game(Main main) {
         this.main = main;
+        initScene();
         setLayout(new BorderLayout());
         setBackground(Color.BLACK);
 
@@ -70,6 +78,29 @@ public class Game extends JPanel {
         actionPanel.add(btnNextDay);
 
         add(actionPanel, BorderLayout.SOUTH);
+    }
+
+    private void initScene() {
+        scenes.add(new Scene(
+            2,
+            "assets/bg_space.png",
+            "src/assets/scene/astronout.png",
+            new String[]{
+                "Selamat datang, Astronot.",
+                "Aku adalah AI pendampingmu dalam misi ini.",
+                "Bertahanlah selama 10 hari sampai bantuan datang."
+            }
+        ));
+
+        scenes.add(new Scene(
+            3,
+            "assets/bg_lab.png",
+            "assets/char_scientist.png",
+            new String[]{
+                "Hari ketiga, sistem mulai mengalami gangguan.",
+                "Pastikan kamu menjaga power tetap stabil."
+            }
+        ));
     }
 
     private JLabel createStatLabel(String text) {
@@ -175,11 +206,22 @@ public class Game extends JPanel {
         // 3. Masuk Hari Baru
         day++;
         updateUIStats();
+        checkSceneTrigger();
         
         if (day > 10) {
             winGame();
         } else {
             appendLog("\n=== DAY " + day + " ===");
+        }
+    }
+
+    private void checkSceneTrigger() {
+        for (Scene s : scenes) {
+            if (s.triggerDay == day) {
+                main.showScene(s);
+                appendLog("Scene cerita muncul (Day " + day + ")");
+                return;
+            }
         }
     }
 
