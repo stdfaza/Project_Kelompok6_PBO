@@ -262,22 +262,36 @@ public class Game extends JPanel {
         isGameOver = true;
         enableButtons(false);
 
+        // Matikan thread scene
         running = false;
         if (sceneThread != null) sceneThread.interrupt();
 
-        JOptionPane.showMessageDialog(this, "SELAMAT! Bantuan telah datang!", "Victory", JOptionPane.INFORMATION_MESSAGE);
+        // PANGGIL ENDING PAGE (Good Ending)
+        // Pastikan path gambarnya sesuai dengan folder kamu
+        main.showEnding(
+            "MISSION ACCOMPLISHED", 
+            "Sinyal bantuan berhasil mencapai Bumi. Kapal penyelamat telah menjemputmu. Azkal berhasil membawa data penting dan selamat kembali ke rumah.", 
+            "assets/ending/image.jpeg", // Path gambar yang kamu minta
+            true // Menang
+        );
     }
 
     private void triggerGameOver(String reason) {
         isGameOver = true;
         enableButtons(false);
-        updateUIStats(); // Update terakhir biar user lihat angka 0
+        updateUIStats();
 
+        // Matikan thread scene
         running = false;
         if (sceneThread != null) sceneThread.interrupt();
 
-        appendLog("\n💀 GAME OVER: " + reason);
-        JOptionPane.showMessageDialog(this, reason, "Game Over", JOptionPane.ERROR_MESSAGE);
+        // PANGGIL ENDING PAGE (Bad Ending)
+        main.showEnding(
+            "MISSION FAILED", 
+            reason + "\n\nTubuh Azkal ditemukan melayang di ruang hampa berhari-hari kemudian. Tidak ada yang tersisa selain kesunyian.", 
+            "assets/ending/image.jpeg", // Bisa gunakan gambar yang sama atau beda (misal: "assets/ending/bad_ending.jpg")
+            false // Kalah
+        );
     }
 
     private void updateUIStats() {

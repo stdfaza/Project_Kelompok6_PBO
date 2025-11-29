@@ -8,6 +8,7 @@ public class Main extends JFrame {
     private HomePage homePage;
     private Game gamePage;
     private ScenePage scenePage;
+    private EndingPage endingPage;
 
     // Variabel Login
     private int currentAstronoutId;
@@ -27,12 +28,14 @@ public class Main extends JFrame {
         homePage = new HomePage(this);
         gamePage = new Game(this);
         scenePage = new ScenePage(this);
+        endingPage = new EndingPage(this);
 
         // Add ke card layout
         mainPage.add(loginPage, "LoginPage");
         mainPage.add(homePage, "HomePage");
         mainPage.add(gamePage, "GamePage");
         mainPage.add(scenePage, "ScenePage");
+        mainPage.add(endingPage, "EndingPage");
 
         add(mainPage);
 
@@ -62,6 +65,10 @@ public class Main extends JFrame {
 
         // ⬅ Setelah login → pindah ke HomePage
         showPage("HomePage");
+    }
+    public void showEnding(String title, String desc, String imgPath, boolean isWin) {
+        endingPage.setEnding(title, desc, imgPath, isWin);
+        cardLayout.show(mainPage, "EndingPage");
     }
 
     public int getCurrentAstronoutId() {
