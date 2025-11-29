@@ -19,6 +19,10 @@ public class Game extends JPanel {
     // Scene
     private List<Scene> scenes = new ArrayList<>();
 
+    // Thread
+    private Thread sceneThread;
+    private boolean running = true;
+
     // UI Components
     private JLabel dayLabel, oxygenLabel, foodLabel, powerLabel;
     private JTextArea logArea;
@@ -82,7 +86,7 @@ public class Game extends JPanel {
 
     private void initScene() {
         scenes.add(new Scene(
-            2,
+            1,
             "assets/bg_space.png",
             "src/assets/scene/astronout.png",
             new String[]{
@@ -101,6 +105,34 @@ public class Game extends JPanel {
                 "Pastikan kamu menjaga power tetap stabil."
             }
         ));
+    }
+
+    private void startSceneEvent() {
+        sceneThread = new Thread(() -> {
+            while (running) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    break;
+                }
+
+                for (Scene s : scenes) {
+                    if (s.triggerDay == day) {
+                        if (!s.hasPlayed) {
+                            s.hasPlayed = true;
+
+                            SwingUtilities.invokeLater(() -> {
+                                appendLog("Scene cerita muncul (Auto Thread) Day = " + day);
+                                main.showScene(s);
+                            });
+                        }
+                    }
+                }
+
+            }
+        });
+        
+        sceneThread.start();
     }
 
     private JLabel createStatLabel(String text) {
@@ -136,6 +168,7 @@ public class Game extends JPanel {
         appendLog("------------------------------------------------\n");
         
         updateUIStats();
+        startSceneEvent();
     }
 
     // Method 1: Aksi Instan (TIDAK Menambah Hari, TIDAK Memicu Kelaparan)
@@ -228,6 +261,10 @@ public class Game extends JPanel {
     private void winGame() {
         isGameOver = true;
         enableButtons(false);
+
+        running = false;
+        if (sceneThread != null) sceneThread.interrupt();
+
         JOptionPane.showMessageDialog(this, "SELAMAT! Bantuan telah datang!", "Victory", JOptionPane.INFORMATION_MESSAGE);
     }
 
@@ -235,6 +272,10 @@ public class Game extends JPanel {
         isGameOver = true;
         enableButtons(false);
         updateUIStats(); // Update terakhir biar user lihat angka 0
+
+        running = false;
+        if (sceneThread != null) sceneThread.interrupt();
+
         appendLog("\n💀 GAME OVER: " + reason);
         JOptionPane.showMessageDialog(this, reason, "Game Over", JOptionPane.ERROR_MESSAGE);
     }
