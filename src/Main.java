@@ -63,7 +63,6 @@ public class Main extends JFrame {
         currentAstronoutId = id;
         currentAstronoutUsername = username;
 
-        // ⬅ Setelah login → pindah ke HomePage
         showPage("HomePage");
     }
     public void showEnding(String title, String desc, String imgPath, boolean isWin) {

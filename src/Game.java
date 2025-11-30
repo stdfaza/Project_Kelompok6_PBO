@@ -30,7 +30,6 @@ public class Game extends JPanel {
 
     public Game(Main main) {
         this.main = main;
-        initScene();
         setLayout(new BorderLayout());
         setBackground(Color.BLACK);
 
@@ -84,29 +83,6 @@ public class Game extends JPanel {
         add(actionPanel, BorderLayout.SOUTH);
     }
 
-    private void initScene() {
-        scenes.add(new Scene(
-            1,
-            "assets/bg_space.png",
-            "src/assets/scene/astronout.png",
-            new String[]{
-                "Selamat datang, Astronot.",
-                "Aku adalah AI pendampingmu dalam misi ini.",
-                "Bertahanlah selama 10 hari sampai bantuan datang."
-            }
-        ));
-
-        scenes.add(new Scene(
-            3,
-            "assets/bg_lab.png",
-            "assets/char_scientist.png",
-            new String[]{
-                "Hari ketiga, sistem mulai mengalami gangguan.",
-                "Pastikan kamu menjaga power tetap stabil."
-            }
-        ));
-    }
-
     private void startSceneEvent() {
         sceneThread = new Thread(() -> {
             while (running) {
@@ -135,6 +111,48 @@ public class Game extends JPanel {
         sceneThread.start();
     }
 
+    private void initStoryData() {
+        // == Bikin Character ==
+        Character astro = new Character
+        (
+            "Astronout",
+            "/assets/scene/astronout.png",
+            new String[]{
+                    "Aku terbangun di ruang angkasa...",
+                    "Oksigenku hampir habis!"
+            }
+        );
+
+        Character ai = new Character
+        (
+            "AI Assistant",
+            "/assets/scene/astronout.png",
+            new String[]{
+                    "Selamat pagi kapten.",
+                    "Peringatan: Level oksigen kritis."
+            }
+        );
+
+        // == Bikin SceneLine (urutan siapa bicara) ==
+        SceneLine[] lines = {
+                new SceneLine("Hari itu langit tampak gelap..."), // Narator
+                new SceneLine(astro, 0, "RIGHT"),
+                new SceneLine(ai, 0, "LEFT"),
+                new SceneLine(astro, 1, "RIGHT"),
+                new SceneLine(ai, 1, "LEFT")
+        };
+
+        // == Bikin Scene ==
+        Scene introScene = new Scene(
+                1,                              // triggerDay = 1
+                "assets/bg_space.png",          // background
+                "a",
+                lines
+        );
+
+        scenes.add(introScene);
+    }
+
     private JLabel createStatLabel(String text) {
         JLabel label = new JLabel(text, SwingConstants.CENTER);
         label.setForeground(Color.WHITE);
@@ -153,6 +171,7 @@ public class Game extends JPanel {
     // --- GAME LOGIC UTAMA ---
 
     public void startGame() {
+        initStoryData();
         day = 1;
         oxygen = 100;
         food = 100;

@@ -1,22 +1,24 @@
 import java.awt.*;
 import javax.swing.*;
 
-public class Scene extends JPanel {
+public class Scene {
     // Trigger
     public int triggerDay;
 
     // Path
     public Image background;
-    public Image character;
-    public String[] dialog;
+    public String music;
+
+    // SceneLine
+    public SceneLine[] lines;
 
     // Check
     public boolean hasPlayed = false;
 
-    public Scene(int triggerDay, String bgPath, String charPath, String[] dialog) {
+    public Scene(int triggerDay, String backgroundPath, String music, SceneLine[] lines) {
         this.triggerDay = triggerDay;
-        this.background = new ImageIcon(bgPath).getImage();
-        this.character = new ImageIcon(charPath).getImage();
-        this.dialog = dialog;
+        this.background = new ImageIcon(backgroundPath).getImage();
+        this.music = music;
+        this.lines = lines;
     }
 }
