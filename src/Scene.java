@@ -1,24 +1,34 @@
 import java.awt.*;
 import javax.swing.*;
 
-public class Scene {
+public class Scene extends JPanel {
     // Trigger
     public int triggerDay;
 
-    // Path
+    // Path & Data
     public Image background;
-    public String music;
+    public Image character;
+    public String[] dialog;
 
-    // SceneLine
-    public SceneLine[] lines;
-
-    // Check
+    // Status Check
     public boolean hasPlayed = false;
 
-    public Scene(int triggerDay, String backgroundPath, String music, SceneLine[] lines) {
+    // Constructor ini yang dicari oleh error tersebut (4 Parameter)
+    public Scene(int triggerDay, String bgPath, String charPath, String[] dialog) {
         this.triggerDay = triggerDay;
-        this.background = new ImageIcon(backgroundPath).getImage();
-        this.music = music;
-        this.lines = lines;
+        
+        // Load gambar dari path
+        try {
+            if (bgPath != null) {
+                this.background = new ImageIcon(getClass().getResource(bgPath)).getImage();
+            }
+            if (charPath != null) {
+                this.character = new ImageIcon(getClass().getResource(charPath)).getImage();
+            }
+        } catch (Exception e) {
+            System.out.println("Error loading scene images: " + e.getMessage());
+        }
+
+        this.dialog = dialog;
     }
 }

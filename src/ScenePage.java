@@ -1,7 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 
 public class ScenePage extends JPanel {
     private Main main;
@@ -10,9 +9,8 @@ public class ScenePage extends JPanel {
 
     public ScenePage(Main main) {
         this.main = main;
-
         setLayout(null);
-        setBackground(Color.BLACK);
+        setBackground(Theme.BACK_COLOR);
 
         addMouseListener(new MouseAdapter() {
             @Override
@@ -20,17 +18,17 @@ public class ScenePage extends JPanel {
                 if (scene == null) return;
 
                 dialogIndex++;
-
-                if (dialogIndex >= scene.lines.length) {
-                    main.showGame();
+                
+                // PERBAIKAN 1: Gunakan scene.dialog.length
+                if(dialogIndex >= scene.dialog.length) {
+                    main.showGame(); 
                 } else {
-                    repaint();
+                    repaint(); 
                 }
             }
         });
     }
 
-    /** Load scene */
     public void loadScene(Scene scene) {
         this.scene = scene;
         this.dialogIndex = 0;
@@ -41,56 +39,31 @@ public class ScenePage extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        if (scene == null) return;
+        if(scene == null) return;
 
-        // ====== Draw Background ======
-        g.drawImage(scene.background, 0, 0, getWidth(), getHeight(), null);
-
-        // ====== Current Line ======
-        SceneLine current = scene.lines[dialogIndex];
-        Character speaker = current.speaker;
-
-        // ====== Draw Character Image ======
-        if (speaker != null && speaker.getImage() != null) {
-
-            int x = 0;
-
-            if ("LEFT".equals(current.position)) {
-                x = 100;  // posisi kiri
-            } else if ("RIGHT".equals(current.position)) {
-                x = getWidth() - 600; // posisi kanan (menempel kanan)
-            }
-
-            g.drawImage(speaker.getImage(), x, 80, 500, 600, null);
+        // 1. Background
+        if (scene.background != null) {
+            g.drawImage(scene.background, 0, 0, getWidth(), getHeight(), this);
+        } else {
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, getWidth(), getHeight());
         }
 
-        // ====== Draw Dialogue Box ======
+        // 2. Character
+        if (scene.character != null)
+            g.drawImage(scene.character, 400, 120, 400, 500, this);
+
+        // 3. Dialogue Box
         g.setColor(new Color(0, 0, 0, 180));
-        g.fillRoundRect(50, 500, 1180, 180, 25, 25);
+        g.fillRoundRect(50, 500, 1180, 150, 20, 20);
 
-        // ====== Draw Speaker Name ======
+        // 4. Text
         g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 24));
-
-        if (speaker != null) {
-            g.drawString(speaker.getName(), 70, 540);
-        } else {
-            g.drawString("NARRATOR", 70, 540);
-        }
-
-        // ====== Draw Dialogue Text ======
         g.setFont(new Font("Arial", Font.PLAIN, 24));
-
-        String text;
-
-        if (speaker == null) {
-            // Narator — gunakan dialogueIndex sebagai teks langsung
-            text = current.narrationText;
-        } else {
-            // Ambil dialog dari karakter
-            text = speaker.getDialog(current.dialogueIndex);
+        
+        // PERBAIKAN 2 (Baris 50): Gunakan scene.dialog
+        if (scene.dialog != null && dialogIndex < scene.dialog.length) {
+            g.drawString(scene.dialog[dialogIndex], 70, 560);
         }
-
-        g.drawString(text, 70, 585);
     }
 }

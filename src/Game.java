@@ -1,340 +1,310 @@
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
 
 public class Game extends JPanel {
     private Main main;
 
-    // Game Variables
+    // --- GAME VARIABLES ---
     private int day;
     private int oxygen;
     private int food;
     private int power;
-    private int starvationDays; // Counter hari tanpa makan
+    private int starvationDays;
     private boolean isGameOver;
-
-    // Scene
-    private List<Scene> scenes = new ArrayList<>();
-
-    // Thread
-    private Thread sceneThread;
     private boolean running = true;
+    
+    // Log Storage
+    private StringBuilder logHistory = new StringBuilder();
+    
+    // Scene System
+    private List<Scene> scenes = new ArrayList<>();
+    private Thread sceneThread;
 
-    // UI Components
-    private JLabel dayLabel, oxygenLabel, foodLabel, powerLabel;
-    private JTextArea logArea;
-    private JButton btnOxygen, btnFood, btnNextDay;
+    // UI Assets
+    private Image bgImage;
+    private JButton btnNotification;
 
     public Game(Main main) {
         this.main = main;
-        setLayout(new BorderLayout());
-        setBackground(Color.BLACK);
+        setLayout(new BorderLayout()); 
 
-        // 1. Top Panel (Stats)
-        JPanel statsPanel = new JPanel(new GridLayout(1, 4));
-        statsPanel.setBackground(Color.DARK_GRAY);
-        statsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        loadAssets();
+        initScene();
+        setupUI();
+    }
 
-        dayLabel = createStatLabel("Day: 0");
-        oxygenLabel = createStatLabel("Oxygen: 100%");
-        foodLabel = createStatLabel("Food: 100%");
-        powerLabel = createStatLabel("Power: 100%");
+    private void loadAssets() {
+        try {
+            bgImage = new ImageIcon(getClass().getResource("/assets/scene/image.jpg")).getImage();
+        } catch (Exception e) {
+            System.out.println("Gagal load background.");
+        }
+    }
 
-        statsPanel.add(dayLabel);
-        statsPanel.add(oxygenLabel);
-        statsPanel.add(foodLabel);
-        statsPanel.add(powerLabel);
+    private void setupUI() {
+        // 1. PANEL KIRI (Action Buttons)
+        JPanel leftPanel = new JPanel();
+        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+        leftPanel.setOpaque(false); 
+        leftPanel.setBorder(new EmptyBorder(20, 20, 0, 0)); 
 
-        add(statsPanel, BorderLayout.NORTH);
-
-        // 2. Center Panel (Story Log)
-        logArea = new JTextArea();
-        logArea.setEditable(false);
-        logArea.setBackground(Color.BLACK);
-        logArea.setForeground(Color.GREEN);
-        logArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
-        logArea.setLineWrap(true);
-        logArea.setWrapStyleWord(true);
-        logArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        JScrollPane scrollPane = new JScrollPane(logArea);
-        scrollPane.setBorder(null);
-        add(scrollPane, BorderLayout.CENTER);
-
-        // 3. Bottom Panel (Actions)
-        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
-        actionPanel.setBackground(Color.DARK_GRAY);
-
-        btnOxygen = createActionButton("Recycle Oxygen (-20 Power)");
-        btnFood = createActionButton("Synthesize Food (-20 Power)");
-        btnNextDay = createActionButton("Solar Charge (END DAY)");
+        JButton btnOxygen = createImageButton("/assets/icon/image2.png", "Recycle Oxygen");
+        JButton btnFood = createImageButton("/assets/icon/image.jpg", "Synthesize Food");
 
         btnOxygen.addActionListener(e -> performAction("OXYGEN"));
         btnFood.addActionListener(e -> performAction("FOOD"));
-        btnNextDay.addActionListener(e -> endDay());
 
-        actionPanel.add(btnOxygen);
-        actionPanel.add(btnFood);
-        actionPanel.add(btnNextDay);
+        leftPanel.add(btnOxygen);
+        leftPanel.add(Box.createVerticalStrut(15)); 
+        leftPanel.add(btnFood);
 
-        add(actionPanel, BorderLayout.SOUTH);
-    }
+        // 2. PANEL KANAN ATAS (Notification Button)
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        rightPanel.setOpaque(false);
+        rightPanel.setBorder(new EmptyBorder(20, 0, 0, 20));
 
-    private void startSceneEvent() {
-        sceneThread = new Thread(() -> {
-            while (running) {
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    break;
-                }
-
-                for (Scene s : scenes) {
-                    if (s.triggerDay == day) {
-                        if (!s.hasPlayed) {
-                            s.hasPlayed = true;
-
-                            SwingUtilities.invokeLater(() -> {
-                                appendLog("Scene cerita muncul (Auto Thread) Day = " + day);
-                                main.showScene(s);
-                            });
-                        }
-                    }
-                }
-
-            }
-        });
+        btnNotification = createImageButton("/assets/icon/image3.png", "Check Status & Log");
+        btnNotification.addActionListener(e -> showStatusPopup());
         
-        sceneThread.start();
+        rightPanel.add(btnNotification);
+
+        // 3. PANEL KANAN BAWAH (Next Day Button)
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottomPanel.setOpaque(false);
+        bottomPanel.setBorder(new EmptyBorder(0, 0, 20, 20));
+
+        JButton btnNextDay = createImageButton("/assets/btn_next.png", "Solar Charge (Next Day)");
+        btnNextDay.addActionListener(e -> endDay());
+        bottomPanel.add(btnNextDay);
+
+        // Add to Main Layout
+        add(leftPanel, BorderLayout.WEST);
+        add(rightPanel, BorderLayout.EAST);
+        add(bottomPanel, BorderLayout.SOUTH);
+    }
+    
+    // --- POP-UP STATUS SYSTEM ---
+    private void showStatusPopup() {
+        JDialog popup = new JDialog(main, "System Status", true);
+        popup.setSize(400, 500);
+        popup.setLayout(new BorderLayout());
+        popup.setLocationRelativeTo(main);
+        popup.setUndecorated(true);
+        
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(30, 30, 30));
+        panel.setBorder(new LineBorder(Color.WHITE, 2));
+        
+        // Header Stats
+        JPanel statsPanel = new JPanel(new GridLayout(4, 1));
+        statsPanel.setBackground(new Color(50, 50, 50));
+        statsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        
+        statsPanel.add(createPopupLabel("📅 DAY: " + day + "/10"));
+        statsPanel.add(createPopupLabel("💨 OXYGEN: " + oxygen + "%", oxygen < 20));
+        statsPanel.add(createPopupLabel("🍖 FOOD: " + food + "%", food < 20));
+        statsPanel.add(createPopupLabel("⚡ POWER: " + power + "%", power < 20));
+        
+        // Log Content
+        JTextArea popupLog = new JTextArea();
+        popupLog.setText(logHistory.toString());
+        popupLog.setEditable(false);
+        popupLog.setBackground(new Color(20, 20, 20));
+        popupLog.setForeground(Color.GREEN);
+        popupLog.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        popupLog.setLineWrap(true);
+        popupLog.setWrapStyleWord(true);
+        
+        JScrollPane scroll = new JScrollPane(popupLog);
+        scroll.setBorder(null);
+        popupLog.setCaretPosition(popupLog.getDocument().getLength());
+
+        // Footer Button
+        JButton btnClose = new JButton("CLOSE");
+        btnClose.setBackground(new Color(200, 50, 50));
+        btnClose.setForeground(Color.WHITE);
+        btnClose.setFocusPainted(false);
+        btnClose.addActionListener(e -> popup.dispose());
+
+        panel.add(statsPanel, BorderLayout.NORTH);
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(btnClose, BorderLayout.SOUTH);
+
+        popup.add(panel);
+        popup.setVisible(true);
     }
 
-    private void initStoryData() {
-        // == Bikin Character ==
-        Character astro = new Character
-        (
-            "Astronout",
-            "/assets/scene/astronout.png",
-            new String[]{
-                    "Aku terbangun di ruang angkasa...",
-                    "Oksigenku hampir habis!"
-            }
-        );
-
-        Character ai = new Character
-        (
-            "AI Assistant",
-            "/assets/scene/astronout.png",
-            new String[]{
-                    "Selamat pagi kapten.",
-                    "Peringatan: Level oksigen kritis."
-            }
-        );
-
-        // == Bikin SceneLine (urutan siapa bicara) ==
-        SceneLine[] lines = {
-                new SceneLine("Hari itu langit tampak gelap..."), // Narator
-                new SceneLine(astro, 0, "RIGHT"),
-                new SceneLine(ai, 0, "LEFT"),
-                new SceneLine(astro, 1, "RIGHT"),
-                new SceneLine(ai, 1, "LEFT")
-        };
-
-        // == Bikin Scene ==
-        Scene introScene = new Scene(
-                1,                              // triggerDay = 1
-                "assets/bg_space.png",          // background
-                "a",
-                lines
-        );
-
-        scenes.add(introScene);
+    private JLabel createPopupLabel(String text) {
+        return createPopupLabel(text, false);
+    }
+    
+    private JLabel createPopupLabel(String text, boolean isCritical) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("Arial", Font.BOLD, 14));
+        lbl.setForeground(isCritical ? Color.RED : Color.WHITE);
+        return lbl;
     }
 
-    private JLabel createStatLabel(String text) {
-        JLabel label = new JLabel(text, SwingConstants.CENTER);
-        label.setForeground(Color.WHITE);
-        label.setFont(new Font("Arial", Font.BOLD, 16));
-        return label;
-    }
-
-    private JButton createActionButton(String text) {
-        JButton btn = new JButton(text);
-        btn.setFont(new Font("Arial", Font.BOLD, 12));
-        btn.setBackground(Color.LIGHT_GRAY);
+    private JButton createImageButton(String path, String tooltip) {
+        JButton btn = new JButton();
+        try {
+            ImageIcon icon = new ImageIcon(getClass().getResource(path));
+            Image img = icon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+            btn.setIcon(new ImageIcon(img));
+        } catch (Exception e) {
+            btn.setText("O"); 
+            btn.setBackground(Color.GRAY);
+        }
+        btn.setToolTipText(tooltip);
+        btn.setBorderPainted(false);
+        btn.setContentAreaFilled(false);
         btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return btn;
     }
 
-    // --- GAME LOGIC UTAMA ---
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        if (bgImage != null) {
+            g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
+        } else {
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, getWidth(), getHeight());
+        }
+    }
+
+    // ==========================================
+    // GAME LOGIC
+    // ==========================================
+
+    private void initScene() {
+        scenes.add(new Scene(1, "assets/bg_space.png", "src/assets/scene/astronout.png", 
+            new String[]{"Selamat datang, Astronot.", "Aku AI pendampingmu.", "Bertahanlah 10 hari."}));
+    }
 
     public void startGame() {
-        initStoryData();
-        day = 1;
-        oxygen = 100;
-        food = 100;
-        power = 100;
-        starvationDays = 0;
-        isGameOver = false;
-
-        enableButtons(true);
-        logArea.setText("");
-        appendLog("=== DAY 1: SURVIVAL START ===");
-        appendLog("Status: Oksigen Penuh, Makanan Penuh.");
-        appendLog("PERINGATAN: Jika Makanan 0 selama 2 hari berturut-turut, kamu akan mati.");
-        appendLog("------------------------------------------------\n");
+        day = 1; oxygen = 100; food = 100; power = 100; starvationDays = 0;
+        isGameOver = false; running = true;
         
-        updateUIStats();
+        logHistory.setLength(0); 
+        appendLog("=== SYSTEM BOOT ===");
+        appendLog("Status: Online.");
+        
         startSceneEvent();
     }
 
-    // Method 1: Aksi Instan (TIDAK Menambah Hari, TIDAK Memicu Kelaparan)
     private void performAction(String action) {
         if (isGameOver) return;
-
         if (power < 20) {
-            appendLog("⚠️ GAGAL: Power tidak cukup (Butuh 20%). Akhiri hari untuk charge.");
+            appendLog("⚠ POWER LOW! Action Failed.");
             return;
         }
 
-        power -= 20; // Cost Power
+        power -= 20;
 
         if (action.equals("OXYGEN")) {
             oxygen = Math.min(100, oxygen + 30);
-            appendLog("> Oksigen didaur ulang. (+30% O2)");
+            appendLog(">>> Player: Menambah Oksigen (+30%).");
         } else if (action.equals("FOOD")) {
             food = Math.min(100, food + 30);
-            appendLog("> Makanan disintesis. (+30% Food)");
+            appendLog(">>> Player: Menambah Makanan (+30%).");
         }
-
-        // Cek hanya jika Oksigen habis mendadak (sangat jarang terjadi di sini, tapi safety)
-        if (oxygen <= 0) triggerGameOver("KADAR OKSIGEN HABIS SAAT BEKERJA.");
-        
-        updateUIStats();
     }
 
-    // Method 2: Ganti Hari (Di sini logika Starvation bekerja)
     private void endDay() {
         if (isGameOver) return;
 
-        appendLog("\n=== MALAM HARI ===");
-        
-        // 1. Regenerasi Power & Konsumsi Resource
+        appendLog("\n[SYSTEM] : Day " + day + " Ended.");
         power = Math.min(100, power + 50);
-        int dailyDrain = 15;
-        oxygen -= dailyDrain;
-        food -= dailyDrain;
-
-        appendLog("Tidur... (-" + dailyDrain + "% Oksigen, -" + dailyDrain + "% Makanan)");
-
-        // 2. LOGIKA KEMATIAN (PENTING: Urutan Pengecekan)
         
-        // A. Cek Oksigen (Langsung mati)
-        if (oxygen <= 0) {
-            oxygen = 0;
-            triggerGameOver("KADAR OKSIGEN HABIS. Kamu mati dalam tidur.");
-            return;
-        }
+        // Passive Drain
+        int drain = 15;
+        oxygen -= drain;
+        food -= drain;
 
-        // B. Cek Makanan (Sistem Bertahap 2 Hari)
+        triggerRandomEvent();
+        appendLog("[SYSTEM] : Resource decreased (-" + drain + "%)");
+
+        // Check Critical Conditions
+        if (oxygen <= 0) { 
+            oxygen = 0; 
+            triggerGameOver("Kehabisan Oksigen."); 
+            return; 
+        }
+        
         if (food <= 0) {
             food = 0;
-            starvationDays++; // Tambah counter kelaparan
-            
-            if (starvationDays >= 2) {
-                triggerGameOver("KELAPARAN TOTAL. Tubuhmu tidak bisa bertahan lagi.");
-                return;
-            } else {
-                appendLog("⚠️ PERINGATAN KRITIS: Makanan Habis! (" + starvationDays + "/2 hari sebelum mati).");
-            }
+            starvationDays++;
+            if (starvationDays >= 2) { triggerGameOver("Mati Kelaparan."); return; }
+            appendLog("⚠ WARNING: Makanan Habis!");
         } else {
-            // Jika ada makanan, reset counter kelaparan
-            if (starvationDays > 0) appendLog("Status Nutrisi: Pulih.");
             starvationDays = 0;
         }
 
-        // 3. Masuk Hari Baru
         day++;
-        updateUIStats();
         checkSceneTrigger();
-        
-        if (day > 10) {
-            winGame();
-        } else {
-            appendLog("\n=== DAY " + day + " ===");
+        if (day > 10) winGame();
+    }
+    
+    private void triggerRandomEvent() {
+         if (Math.random() > 0.4) return; 
+
+        int eventType = (int) (Math.random() * 3); 
+        switch (eventType) {
+            case 0: 
+                oxygen -= 15;
+                appendLog("⚠ ALARM: Meteoroid Impact! Oxygen -15%.");
+                break;
+            case 1: 
+                food -= 20;
+                appendLog("⚠ ALARM: Food Storage Fail! Food -20%.");
+                break;
+            case 2: 
+                power -= 25;
+                appendLog("⚠ ALARM: Solar Flare! Power -25%.");
+                break;
         }
+        oxygen = Math.max(0, oxygen);
+        food = Math.max(0, food);
+        power = Math.max(0, power);
+    }
+
+    private void appendLog(String text) {
+        logHistory.append(text).append("\n");
+    }
+    
+    private void startSceneEvent() {
+        sceneThread = new Thread(() -> {
+            while (running) {
+                try { Thread.sleep(500); } catch (InterruptedException e) { break; }
+            }
+        });
+        sceneThread.start();
     }
 
     private void checkSceneTrigger() {
         for (Scene s : scenes) {
-            if (s.triggerDay == day) {
-                main.showScene(s);
-                appendLog("Scene cerita muncul (Day " + day + ")");
-                return;
+            if (s.triggerDay == day && !s.hasPlayed) {
+                s.hasPlayed = true;
+                SwingUtilities.invokeLater(() -> main.showScene(s));
             }
         }
     }
 
     private void winGame() {
         isGameOver = true;
-        enableButtons(false);
-
-        // Matikan thread scene
         running = false;
-        if (sceneThread != null) sceneThread.interrupt();
-
-        // PANGGIL ENDING PAGE (Good Ending)
-        // Pastikan path gambarnya sesuai dengan folder kamu
-        main.showEnding(
-            "MISSION ACCOMPLISHED", 
-            "Sinyal bantuan berhasil mencapai Bumi. Kapal penyelamat telah menjemputmu. Azkal berhasil membawa data penting dan selamat kembali ke rumah.", 
-            "assets/ending/image.jpeg", // Path gambar yang kamu minta
-            true // Menang
-        );
+        main.showEnding("MISSION SUCCESS", "Kamu berhasil bertahan hidup!", "assets/ending/win.jpg", true);
     }
 
     private void triggerGameOver(String reason) {
         isGameOver = true;
-        enableButtons(false);
-        updateUIStats();
-
-        // Matikan thread scene
         running = false;
-        if (sceneThread != null) sceneThread.interrupt();
-
-        // PANGGIL ENDING PAGE (Bad Ending)
-        main.showEnding(
-            "MISSION FAILED", 
-            reason + "\n\nTubuh Azkal ditemukan melayang di ruang hampa berhari-hari kemudian. Tidak ada yang tersisa selain kesunyian.", 
-            "assets/ending/image.jpeg", // Bisa gunakan gambar yang sama atau beda (misal: "assets/ending/bad_ending.jpg")
-            false // Kalah
-        );
-    }
-
-    private void updateUIStats() {
-        dayLabel.setText("Day: " + Math.min(day, 10) + "/10");
-        oxygenLabel.setText("Oxygen: " + oxygen + "%");
-        foodLabel.setText("Food: " + food + "%");
-        powerLabel.setText("Power: " + power + "%");
-
-        // Warna Merah jika kritis atau sedang kelaparan
-        oxygenLabel.setForeground(oxygen < 20 ? Color.RED : Color.WHITE);
-        foodLabel.setForeground(food <= 0 ? Color.RED : (food < 20 ? Color.YELLOW : Color.WHITE));
-        
-        // Indikator Power
-        powerLabel.setForeground(power < 20 ? Color.RED : Color.YELLOW);
-    }
-
-    private void enableButtons(boolean enabled) {
-        btnOxygen.setEnabled(enabled);
-        btnFood.setEnabled(enabled);
-        btnNextDay.setEnabled(enabled);
-    }
-
-    private void appendLog(String text) {
-        logArea.append(text + "\n");
-        logArea.setCaretPosition(logArea.getDocument().getLength());
+        main.showEnding("GAME OVER", reason, "assets/ending/lose.jpg", false);
     }
 }
