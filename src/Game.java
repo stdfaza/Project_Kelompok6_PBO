@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
@@ -39,14 +40,18 @@ public class Game extends JPanel {
 
     private void loadAssets() {
         try {
-            bgImage = new ImageIcon(getClass().getResource("/assets/scene/image.jpg")).getImage();
+            // Pastikan gambar ini ada. Jika tidak, background jadi hitam.
+            java.net.URL imgUrl = getClass().getResource("/assets/scene/image.jpg");
+            if (imgUrl != null) {
+                bgImage = new ImageIcon(imgUrl).getImage();
+            }
         } catch (Exception e) {
             System.out.println("Gagal load background.");
         }
     }
 
     private void setupUI() {
-        // 1. PANEL KIRI (Action Buttons)
+        // 1. PANEL KIRI (Tombol Aksi)
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
         leftPanel.setOpaque(false); 
@@ -62,7 +67,7 @@ public class Game extends JPanel {
         leftPanel.add(Box.createVerticalStrut(15)); 
         leftPanel.add(btnFood);
 
-        // 2. PANEL KANAN ATAS (Notification Button)
+        // 2. PANEL KANAN ATAS (Tombol Notifikasi)
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         rightPanel.setOpaque(false);
         rightPanel.setBorder(new EmptyBorder(20, 0, 0, 20));
@@ -72,7 +77,7 @@ public class Game extends JPanel {
         
         rightPanel.add(btnNotification);
 
-        // 3. PANEL KANAN BAWAH (Next Day Button)
+        // 3. PANEL KANAN BAWAH (Tombol Next Day)
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottomPanel.setOpaque(false);
         bottomPanel.setBorder(new EmptyBorder(0, 0, 20, 20));
@@ -81,83 +86,153 @@ public class Game extends JPanel {
         btnNextDay.addActionListener(e -> endDay());
         bottomPanel.add(btnNextDay);
 
-        // Add to Main Layout
         add(leftPanel, BorderLayout.WEST);
         add(rightPanel, BorderLayout.EAST);
         add(bottomPanel, BorderLayout.SOUTH);
     }
     
-    // --- POP-UP STATUS SYSTEM ---
+    // --- POP-UP STATUS SYSTEM (FIXED LAYOUT) ---
     private void showStatusPopup() {
         JDialog popup = new JDialog(main, "System Status", true);
         popup.setSize(400, 500);
-        popup.setLayout(new BorderLayout());
+        
+        // Atur posisi pop-up di tengah
         popup.setLocationRelativeTo(main);
         popup.setUndecorated(true);
         
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(30, 30, 30));
-        panel.setBorder(new LineBorder(Color.WHITE, 2));
+        // PERBAIKAN 1: Gunakan gap (jarak) horizontal 0 dan vertikal 15 di BorderLayout
+        // Ini menggantikan fungsi "Box.createVerticalStrut" yang bikin error kemarin.
+        JPanel panel = new JPanel(new BorderLayout(0, 15)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Background Biru Kartun
+                g2.setColor(new Color(60, 90, 140)); 
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+                
+                // Border Luar Biru Muda
+                g2.setColor(new Color(100, 200, 255)); 
+                g2.setStroke(new BasicStroke(4));
+                g2.drawRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 30, 30);
+                g2.dispose();
+            }
+        };
+        panel.setOpaque(false);
+        // Padding agar konten tidak menempel ke pinggir border
+        panel.setBorder(new EmptyBorder(20, 20, 20, 20)); 
         
-        // Header Stats
+        // Font Setup
+        Font cartoonFont = new Font("Comic Sans MS", Font.BOLD, 16);
+        if (!cartoonFont.getFamily().equals("Comic Sans MS")) {
+            cartoonFont = new Font("Arial", Font.BOLD, 16); 
+        }
+
+        // --- 1. BAGIAN ATAS (STATS) ---
         JPanel statsPanel = new JPanel(new GridLayout(4, 1));
-        statsPanel.setBackground(new Color(50, 50, 50));
-        statsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        statsPanel.setBackground(new Color(80, 110, 160)); 
+        statsPanel.setBorder(new CompoundBorder(
+                new LineBorder(new Color(100, 200, 255), 2, true), 
+                new EmptyBorder(10, 15, 10, 15))); 
         
-        statsPanel.add(createPopupLabel("📅 DAY: " + day + "/10"));
-        statsPanel.add(createPopupLabel("💨 OXYGEN: " + oxygen + "%", oxygen < 20));
-        statsPanel.add(createPopupLabel("🍖 FOOD: " + food + "%", food < 20));
-        statsPanel.add(createPopupLabel("⚡ POWER: " + power + "%", power < 20));
+        statsPanel.add(createPopupLabel("📅 DAY: " + day + "/10", cartoonFont));
+        statsPanel.add(createPopupLabel("💨 OXYGEN: " + oxygen + "%", oxygen < 20, cartoonFont));
+        statsPanel.add(createPopupLabel("🍖 FOOD: " + food + "%", food < 20, cartoonFont));
+        statsPanel.add(createPopupLabel("⚡ POWER: " + power + "%", power < 20, cartoonFont));
         
-        // Log Content
+        // --- 2. BAGIAN TENGAH (LOG AREA) ---
         JTextArea popupLog = new JTextArea();
-        popupLog.setText(logHistory.toString());
+        // Ambil text dari history, jika kosong beri pesan default
+        String textToShow = logHistory.length() > 0 ? logHistory.toString() : "System ready...\nNo logs yet.";
+        popupLog.setText(textToShow); 
         popupLog.setEditable(false);
-        popupLog.setBackground(new Color(20, 20, 20));
-        popupLog.setForeground(Color.GREEN);
-        popupLog.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        
+        // Styling agar terlihat jelas (Hitam transparan dikit)
+        popupLog.setOpaque(true);
+        popupLog.setBackground(new Color(30, 30, 45)); 
+        popupLog.setForeground(new Color(100, 255, 100)); // Hijau Matrix
+        
+        popupLog.setFont(new Font("Monospaced", Font.BOLD, 13)); 
         popupLog.setLineWrap(true);
         popupLog.setWrapStyleWord(true);
+        popupLog.setBorder(new EmptyBorder(10, 10, 10, 10)); 
         
         JScrollPane scroll = new JScrollPane(popupLog);
-        scroll.setBorder(null);
+        scroll.setBorder(new LineBorder(new Color(100, 200, 255), 2)); // Border pembungkus log
+        
+        // Scroll ke bawah otomatis
         popupLog.setCaretPosition(popupLog.getDocument().getLength());
 
-        // Footer Button
-        JButton btnClose = new JButton("CLOSE");
-        btnClose.setBackground(new Color(200, 50, 50));
+        // --- 3. BAGIAN BAWAH (TOMBOL CLOSE) ---
+        JButton btnClose = new JButton("CLOSE") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                if (getModel().isRollover()) {
+                    g2.setColor(new Color(255, 100, 100)); 
+                } else {
+                    g2.setColor(new Color(220, 60, 60)); 
+                }
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25); 
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Arial", Font.BOLD, 16));
+                FontMetrics fm = g2.getFontMetrics();
+                int x = (getWidth() - fm.stringWidth(getText())) / 2;
+                int y = (getHeight() + fm.getAscent()) / 2 - 2;
+                g2.drawString(getText(), x, y);
+                g2.dispose();
+            }
+        };
         btnClose.setForeground(Color.WHITE);
         btnClose.setFocusPainted(false);
+        btnClose.setBorderPainted(false);
+        btnClose.setContentAreaFilled(false);
+        btnClose.setPreferredSize(new Dimension(120, 45));
+        btnClose.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnClose.addActionListener(e -> popup.dispose());
 
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        footerPanel.setOpaque(false);
+        footerPanel.add(btnClose);
+
+        // PERBAIKAN 2: Add component langsung ke posisi yang benar
+        // Spacer sudah diurus oleh `new BorderLayout(0, 15)` di atas
         panel.add(statsPanel, BorderLayout.NORTH);
         panel.add(scroll, BorderLayout.CENTER);
-        panel.add(btnClose, BorderLayout.SOUTH);
+        panel.add(footerPanel, BorderLayout.SOUTH);
 
         popup.add(panel);
         popup.setVisible(true);
     }
 
-    private JLabel createPopupLabel(String text) {
-        return createPopupLabel(text, false);
+    private JLabel createPopupLabel(String text, Font font) {
+        return createPopupLabel(text, false, font);
     }
     
-    private JLabel createPopupLabel(String text, boolean isCritical) {
+    private JLabel createPopupLabel(String text, boolean isCritical, Font font) {
         JLabel lbl = new JLabel(text);
-        lbl.setFont(new Font("Arial", Font.BOLD, 14));
-        lbl.setForeground(isCritical ? Color.RED : Color.WHITE);
+        lbl.setFont(font);
+        lbl.setForeground(isCritical ? new Color(255, 80, 80) : Color.WHITE);
         return lbl;
     }
 
     private JButton createImageButton(String path, String tooltip) {
         JButton btn = new JButton();
         try {
-            ImageIcon icon = new ImageIcon(getClass().getResource(path));
-            Image img = icon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
-            btn.setIcon(new ImageIcon(img));
+            java.net.URL imgUrl = getClass().getResource(path);
+            if (imgUrl != null) {
+                ImageIcon icon = new ImageIcon(imgUrl);
+                Image img = icon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+                btn.setIcon(new ImageIcon(img));
+            } else {
+                btn.setText("O"); 
+                btn.setBackground(Color.GRAY);
+            }
         } catch (Exception e) {
-            btn.setText("O"); 
-            btn.setBackground(Color.GRAY);
+            btn.setText("Err");
         }
         btn.setToolTipText(tooltip);
         btn.setBorderPainted(false);
@@ -179,11 +254,11 @@ public class Game extends JPanel {
     }
 
     // ==========================================
-    // GAME LOGIC
+    // LOGIKA GAME
     // ==========================================
 
     private void initScene() {
-        scenes.add(new Scene(1, "assets/bg_space.png", "src/assets/scene/astronout.png", 
+        scenes.add(new Scene(1, "/assets/bg_space.png", "/assets/scene/astronout.png", 
             new String[]{"Selamat datang, Astronot.", "Aku AI pendampingmu.", "Bertahanlah 10 hari."}));
     }
 
@@ -221,8 +296,6 @@ public class Game extends JPanel {
 
         appendLog("\n[SYSTEM] : Day " + day + " Ended.");
         power = Math.min(100, power + 50);
-        
-        // Passive Drain
         int drain = 15;
         oxygen -= drain;
         food -= drain;
@@ -230,7 +303,6 @@ public class Game extends JPanel {
         triggerRandomEvent();
         appendLog("[SYSTEM] : Resource decreased (-" + drain + "%)");
 
-        // Check Critical Conditions
         if (oxygen <= 0) { 
             oxygen = 0; 
             triggerGameOver("Kehabisan Oksigen."); 

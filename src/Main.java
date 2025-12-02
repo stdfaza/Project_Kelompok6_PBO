@@ -39,7 +39,7 @@ public class Main extends JFrame {
 
         add(mainPage);
 
-        showPage("GamePage");
+        showPage("LoginPage");
     }
 
     public void showPage(String page) {

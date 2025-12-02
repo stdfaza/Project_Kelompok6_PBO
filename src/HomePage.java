@@ -67,6 +67,7 @@ public class HomePage extends JPanel {
                 btnExit.setBackground(new Color(231, 76, 60));
             }
         });
+        btnExit.addActionListener(e -> System.exit(0));
 
         centerPanel.add(btnPlay);
         centerPanel.add(Box.createVerticalStrut(20));
