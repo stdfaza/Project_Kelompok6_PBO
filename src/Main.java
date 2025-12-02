@@ -10,7 +10,6 @@ public class Main extends JFrame {
     private ScenePage scenePage;
     private EndingPage endingPage;
 
-    // Variabel Login
     private int currentAstronoutId;
     private String currentAstronoutUsername;
 
@@ -23,14 +22,12 @@ public class Main extends JFrame {
         cardLayout = new CardLayout();
         mainPage = new JPanel(cardLayout);
 
-        // Inisialisasi halaman
         loginPage = new LoginPage(this);
         homePage = new HomePage(this);
         gamePage = new Game(this);
         scenePage = new ScenePage(this);
         endingPage = new EndingPage(this);
 
-        // Add ke card layout
         mainPage.add(loginPage, "LoginPage");
         mainPage.add(homePage, "HomePage");
         mainPage.add(gamePage, "GamePage");
@@ -38,16 +35,13 @@ public class Main extends JFrame {
         mainPage.add(endingPage, "EndingPage");
 
         add(mainPage);
-
-        showPage("GamePage");
+        showPage("LoginPage");
     }
 
     public void showPage(String page) {
         cardLayout.show(mainPage, page);
-
-        if (page.equals("GamePage")) {
-            gamePage.startGame();
-        }
+        // Hapus pemanggilan gamePage.startGame() disini agar tidak bentrok
+        // Logika start game sekarang dihandle tombol New Game / Continue
     }
 
     public void showScene(Scene s) {
@@ -62,9 +56,9 @@ public class Main extends JFrame {
     public void onLoginSuccess(int id, String username) {
         currentAstronoutId = id;
         currentAstronoutUsername = username;
-
         showPage("HomePage");
     }
+    
     public void showEnding(String title, String desc, String imgPath, boolean isWin) {
         endingPage.setEnding(title, desc, imgPath, isWin);
         cardLayout.show(mainPage, "EndingPage");
@@ -74,8 +68,33 @@ public class Main extends JFrame {
         return currentAstronoutId;
     }
 
-    public String getCurrentAstronoutUsername() {
-        return currentAstronoutUsername;
+    // --- LOGIKA BARU ---
+
+    public void startNewGame() {
+        cardLayout.show(mainPage, "GamePage");
+        gamePage.startNewGame();
+    }
+
+    public void continueGame() {
+        DatabaseConnection db = new DatabaseConnection();
+        
+        // 1. Cek apakah ada Save Data
+        if (!db.hasSaveData(currentAstronoutId)) {
+            JOptionPane.showMessageDialog(this, "Tidak ada data permainan.", "Load Failed", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // 2. Cek apakah Game Terakhir SUDAH SELESAI (Menang/Kalah)
+        if (db.isGameFinished(currentAstronoutId)) {
+            JOptionPane.showMessageDialog(this, 
+                "Permainan sebelumnya sudah berakhir (Menang/Kalah).\nSilakan mulai New Game.", 
+                "Game Finished", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        // 3. Jika Valid, Load Game
+        cardLayout.show(mainPage, "GamePage");
+        gamePage.continueGame();
     }
 
     public static void main(String[] args) {
