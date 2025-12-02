@@ -40,8 +40,7 @@ public class Game extends JPanel {
 
     private void loadAssets() {
         try {
-            // Pastikan gambar ini ada. Jika tidak, background jadi hitam.
-            java.net.URL imgUrl = getClass().getResource("/assets/scene/image.jpg");
+            java.net.URL imgUrl = getClass().getResource("/assets/scene/background2.png");
             if (imgUrl != null) {
                 bgImage = new ImageIcon(imgUrl).getImage();
             }
@@ -91,78 +90,80 @@ public class Game extends JPanel {
         add(bottomPanel, BorderLayout.SOUTH);
     }
     
-    // --- POP-UP STATUS SYSTEM (FIXED LAYOUT) ---
+    // --- POP-UP STATUS SYSTEM (INDUSTRIAL METAL STYLE + TRANSPARENT CORNERS) ---
     private void showStatusPopup() {
         JDialog popup = new JDialog(main, "System Status", true);
-        popup.setSize(400, 500);
-        
-        // Atur posisi pop-up di tengah
+        popup.setSize(400, 550);
         popup.setLocationRelativeTo(main);
         popup.setUndecorated(true);
+
+        // PERBAIKAN: MENGHILANGKAN SUDUT PUTIH
+        popup.setBackground(new Color(0, 0, 0, 0));
+        ((JComponent) popup.getContentPane()).setOpaque(false);
+
+        // Definisi Warna Metalik
+        Color metalDark = new Color(60, 65, 75);   
+        Color metalLight = new Color(120, 130, 150); 
+        Color metalButton = new Color(200, 60, 60); // Merah seperti di gambar
+        Color metalButtonHover = new Color(230, 80, 80); 
+        Color cyanNeon = new Color(100, 255, 255); 
+        Color borderDark = new Color(40, 40, 40); // Warna border gelap untuk tombol close
         
-        // PERBAIKAN 1: Gunakan gap (jarak) horizontal 0 dan vertikal 15 di BorderLayout
-        // Ini menggantikan fungsi "Box.createVerticalStrut" yang bikin error kemarin.
+        // Panel Utama Pop-up
         JPanel panel = new JPanel(new BorderLayout(0, 15)) {
             @Override
             protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
-                // Background Biru Kartun
-                g2.setColor(new Color(60, 90, 140)); 
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+                // BACKGROUND POP-UP
+                g2.setColor(metalDark); 
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20); 
                 
-                // Border Luar Biru Muda
-                g2.setColor(new Color(100, 200, 255)); 
-                g2.setStroke(new BasicStroke(4));
-                g2.drawRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 30, 30);
+                // BORDER POP-UP
+                g2.setColor(metalLight); 
+                g2.setStroke(new BasicStroke(3));
+                g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 20, 20);
                 g2.dispose();
             }
         };
         panel.setOpaque(false);
-        // Padding agar konten tidak menempel ke pinggir border
-        panel.setBorder(new EmptyBorder(20, 20, 20, 20)); 
+        panel.setBorder(new EmptyBorder(25, 25, 25, 25));
         
-        // Font Setup
-        Font cartoonFont = new Font("Comic Sans MS", Font.BOLD, 16);
-        if (!cartoonFont.getFamily().equals("Comic Sans MS")) {
-            cartoonFont = new Font("Arial", Font.BOLD, 16); 
-        }
+        // --- FONT SETUP ---
+        Font titleFont = Theme.FONT.deriveFont(Font.BOLD, 18f);
+        Font logFont = Theme.FONT.deriveFont(Font.PLAIN, 14f);
 
         // --- 1. BAGIAN ATAS (STATS) ---
         JPanel statsPanel = new JPanel(new GridLayout(4, 1));
-        statsPanel.setBackground(new Color(80, 110, 160)); 
+        statsPanel.setBackground(metalDark.darker()); 
         statsPanel.setBorder(new CompoundBorder(
-                new LineBorder(new Color(100, 200, 255), 2, true), 
+                new LineBorder(metalLight, 2), 
                 new EmptyBorder(10, 15, 10, 15))); 
         
-        statsPanel.add(createPopupLabel("📅 DAY: " + day + "/10", cartoonFont));
-        statsPanel.add(createPopupLabel("💨 OXYGEN: " + oxygen + "%", oxygen < 20, cartoonFont));
-        statsPanel.add(createPopupLabel("🍖 FOOD: " + food + "%", food < 20, cartoonFont));
-        statsPanel.add(createPopupLabel("⚡ POWER: " + power + "%", power < 20, cartoonFont));
+        statsPanel.add(createPopupLabel("DAY: " + day + "/10", titleFont));
+        statsPanel.add(createPopupLabel("OXYGEN: " + oxygen + "%", oxygen < 20, titleFont));
+        statsPanel.add(createPopupLabel("FOOD: " + food + "%", food < 20, titleFont));
+        statsPanel.add(createPopupLabel("POWER: " + power + "%", power < 20, titleFont));
         
         // --- 2. BAGIAN TENGAH (LOG AREA) ---
         JTextArea popupLog = new JTextArea();
-        // Ambil text dari history, jika kosong beri pesan default
         String textToShow = logHistory.length() > 0 ? logHistory.toString() : "System ready...\nNo logs yet.";
         popupLog.setText(textToShow); 
         popupLog.setEditable(false);
         
-        // Styling agar terlihat jelas (Hitam transparan dikit)
-        popupLog.setOpaque(true);
-        popupLog.setBackground(new Color(30, 30, 45)); 
-        popupLog.setForeground(new Color(100, 255, 100)); // Hijau Matrix
-        
-        popupLog.setFont(new Font("Monospaced", Font.BOLD, 13)); 
+        popupLog.setOpaque(false);
+        popupLog.setForeground(cyanNeon); 
+        popupLog.setFont(logFont); 
         popupLog.setLineWrap(true);
         popupLog.setWrapStyleWord(true);
-        popupLog.setBorder(new EmptyBorder(10, 10, 10, 10)); 
+        popupLog.setBorder(new EmptyBorder(10, 5, 10, 5)); 
         
         JScrollPane scroll = new JScrollPane(popupLog);
-        scroll.setBorder(new LineBorder(new Color(100, 200, 255), 2)); // Border pembungkus log
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
+        scroll.setBorder(new LineBorder(metalLight, 2)); 
         
-        // Scroll ke bawah otomatis
         popupLog.setCaretPosition(popupLog.getDocument().getLength());
 
         // --- 3. BAGIAN BAWAH (TOMBOL CLOSE) ---
@@ -171,14 +172,16 @@ public class Game extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
                 if (getModel().isRollover()) {
-                    g2.setColor(new Color(255, 100, 100)); 
+                    g2.setColor(metalButtonHover); 
                 } else {
-                    g2.setColor(new Color(220, 60, 60)); 
+                    g2.setColor(metalButton); 
                 }
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25); 
-                g2.setColor(Color.WHITE);
-                g2.setFont(new Font("Arial", Font.BOLD, 16));
+                g2.fillRect(0, 0, getWidth(), getHeight()); // Kotak penuh seperti di gambar
+                
+                g2.setColor(Theme.WHITE_TEXT);
+                g2.setFont(Theme.FONT.deriveFont(Font.BOLD, 16f));
                 FontMetrics fm = g2.getFontMetrics();
                 int x = (getWidth() - fm.stringWidth(getText())) / 2;
                 int y = (getHeight() + fm.getAscent()) / 2 - 2;
@@ -186,11 +189,14 @@ public class Game extends JPanel {
                 g2.dispose();
             }
         };
-        btnClose.setForeground(Color.WHITE);
+        btnClose.setForeground(Theme.WHITE_TEXT);
         btnClose.setFocusPainted(false);
-        btnClose.setBorderPainted(false);
+        // UPDATE: Menambahkan border gelap di sekeliling tombol merah
+        btnClose.setBorder(new CompoundBorder(
+                new LineBorder(borderDark, 3), // Border luar gelap
+                new EmptyBorder(5, 15, 5, 15) // Padding dalam
+        ));
         btnClose.setContentAreaFilled(false);
-        btnClose.setPreferredSize(new Dimension(120, 45));
         btnClose.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnClose.addActionListener(e -> popup.dispose());
 
@@ -198,8 +204,6 @@ public class Game extends JPanel {
         footerPanel.setOpaque(false);
         footerPanel.add(btnClose);
 
-        // PERBAIKAN 2: Add component langsung ke posisi yang benar
-        // Spacer sudah diurus oleh `new BorderLayout(0, 15)` di atas
         panel.add(statsPanel, BorderLayout.NORTH);
         panel.add(scroll, BorderLayout.CENTER);
         panel.add(footerPanel, BorderLayout.SOUTH);
@@ -215,7 +219,8 @@ public class Game extends JPanel {
     private JLabel createPopupLabel(String text, boolean isCritical, Font font) {
         JLabel lbl = new JLabel(text);
         lbl.setFont(font);
-        lbl.setForeground(isCritical ? new Color(255, 80, 80) : Color.WHITE);
+        // Warna merah untuk kritis, putih untuk normal
+        lbl.setForeground(isCritical ? new Color(231, 76, 60) : Theme.WHITE_TEXT);
         return lbl;
     }
 
@@ -248,7 +253,7 @@ public class Game extends JPanel {
         if (bgImage != null) {
             g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
         } else {
-            g.setColor(Color.BLACK);
+            g.setColor(Theme.BACK_COLOR);
             g.fillRect(0, 0, getWidth(), getHeight());
         }
     }
@@ -329,9 +334,14 @@ public class Game extends JPanel {
         int eventType = (int) (Math.random() * 3); 
         switch (eventType) {
             case 0: 
-                oxygen -= 15;
-                appendLog("⚠ ALARM: Meteoroid Impact! Oxygen -15%.");
+                // EVENT 1: METEOR MINI GAME
+                JOptionPane.showMessageDialog(this, 
+                    "⚠ WARNING: METEOR STORM DETECTED! ⚠\nKlik meteor yang muncul secepatnya!", 
+                    "INCOMING THREAT", JOptionPane.WARNING_MESSAGE);
+                
+                startMeteorGame(); // PANGGIL MINI GAME
                 break;
+
             case 1: 
                 food -= 20;
                 appendLog("⚠ ALARM: Food Storage Fail! Food -20%.");
@@ -341,9 +351,117 @@ public class Game extends JPanel {
                 appendLog("⚠ ALARM: Solar Flare! Power -25%.");
                 break;
         }
+        
         oxygen = Math.max(0, oxygen);
         food = Math.max(0, food);
         power = Math.max(0, power);
+    }
+
+    // --- MINI GAME: METEOR DEFENSE (CUSTOM ASSET & BORDERED) ---
+    private void startMeteorGame() {
+        JDialog gameDialog = new JDialog(main, "⚠ METEOR STORM DETECTED! ⚠", true);
+        gameDialog.setSize(800, 500); 
+        gameDialog.setLocationRelativeTo(main);
+        gameDialog.setUndecorated(true);
+        gameDialog.setLayout(null);
+        
+        // UPDATE: Menambahkan Border pada Mini Game Window
+        gameDialog.getRootPane().setBorder(new LineBorder(new Color(100, 255, 100), 4)); // Border hijau neon tebal
+        gameDialog.getContentPane().setBackground(new Color(20, 20, 35)); 
+
+        final int[] score = {0};
+        final int[] timeHeader = {10}; 
+
+        // Label Skor
+        JLabel lblScore = new JLabel("HITS: 0");
+        lblScore.setForeground(Color.GREEN);
+        lblScore.setFont(new Font("Monospaced", Font.BOLD, 24));
+        lblScore.setBounds(30, 20, 200, 30);
+        gameDialog.add(lblScore);
+
+        // Label Waktu
+        JLabel lblTime = new JLabel("TIME: 10");
+        lblTime.setForeground(Color.RED);
+        lblTime.setFont(new Font("Monospaced", Font.BOLD, 24));
+        lblTime.setBounds(650, 20, 150, 30);
+        gameDialog.add(lblTime);
+
+        gameDialog.setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
+
+        Timer spawnTimer = new Timer(600, e -> {
+            JButton meteor = new JButton();
+            try {
+                java.net.URL imgUrl = getClass().getResource("/assets/icon/meteor.png");
+                if (imgUrl != null) {
+                    ImageIcon icon = new ImageIcon(imgUrl);
+                    Image img = icon.getImage().getScaledInstance(60, 60, Image.SCALE_SMOOTH);
+                    meteor.setIcon(new ImageIcon(img));
+                } else {
+                    meteor.setText("☄️");
+                    meteor.setForeground(Color.ORANGE);
+                    meteor.setFont(new Font("Segoe UI Emoji", Font.BOLD, 30));
+                }
+            } catch (Exception ex) {
+                meteor.setText("O");
+            }
+            meteor.setBorderPainted(false);
+            meteor.setContentAreaFilled(false);
+            meteor.setFocusPainted(false);
+            
+            int x = (int) (Math.random() * 700);
+            int y = (int) (Math.random() * 350) + 60; 
+            meteor.setBounds(x, y, 80, 80);
+
+            meteor.addActionListener(ev -> {
+                score[0]++;
+                lblScore.setText("HITS: " + score[0]);
+                gameDialog.remove(meteor); 
+                gameDialog.repaint();
+            });
+
+            gameDialog.add(meteor);
+            gameDialog.repaint();
+
+            Timer removeTimer = new Timer(1200, evt -> {
+                if (meteor.getParent() != null) {
+                    gameDialog.remove(meteor);
+                    gameDialog.repaint();
+                }
+            });
+            removeTimer.setRepeats(false);
+            removeTimer.start();
+        });
+
+        Timer gameLoop = new Timer(1000, e -> {
+            timeHeader[0]--;
+            lblTime.setText("TIME: " + timeHeader[0]);
+
+            if (timeHeader[0] <= 0) {
+                ((Timer)e.getSource()).stop();
+                spawnTimer.stop();
+                gameDialog.dispose(); 
+                evaluateMiniGameResult(score[0]);
+            }
+        });
+
+        spawnTimer.start();
+        gameLoop.start();
+        gameDialog.setVisible(true);
+    }
+
+    private void evaluateMiniGameResult(int score) {
+        if (score >= 10) {
+            appendLog("✅ PERTAHANAN SUKSES! (" + score + " hits)");
+            appendLog("Meteor berhasil dihancurkan. Kapal aman.");
+            JOptionPane.showMessageDialog(this, "Great Job! Ship Secured.", "Defense Success", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            int damage = (10 - score) * 3;
+            oxygen -= damage;
+            appendLog("❌ PERTAHANAN GAGAL! (" + score + " hits)");
+            appendLog("Lambung kapal bocor! Oxygen -" + damage + "%");
+            JOptionPane.showMessageDialog(this, "Impact Detected! Oxygen Leaking...", "Defense Failed", JOptionPane.WARNING_MESSAGE);
+        }
+        if (oxygen < 0) oxygen = 0;
     }
 
     private void appendLog(String text) {
