@@ -3,7 +3,7 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;;
 
-public class LoginPage extends JPanel{
+public class BackupLogin extends JPanel{
     private Main main;
     private Image backgroundImage;
     private JTextField userField;
@@ -12,7 +12,7 @@ public class LoginPage extends JPanel{
     private JButton loginRegisterButton;
     private Dimension size = new Dimension(500, Integer.MAX_VALUE);
 
-    public LoginPage(Main main) {
+    public BackupLogin(Main main) {
         this.main = main;
 
         try {
@@ -21,12 +21,12 @@ public class LoginPage extends JPanel{
             System.out.println("no background found in LoginPage");
         }
 
-        setLayout(new GridBagLayout());
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(Theme.BACK_COLOR);
         
         // Usename
         JLabel userLabel = new JLabel("Username");
-        userLabel.setFont(Theme.FONT.deriveFont(Font.BOLD));
+        userLabel.setFont(Theme.FONT);
         userLabel.setForeground(Theme.COLOR);
         
         userField = new JTextField(20);
@@ -36,13 +36,37 @@ public class LoginPage extends JPanel{
 
         // Password
         JLabel passLabel = new JLabel("Password");
-        passLabel.setFont(Theme.FONT.deriveFont(Font.BOLD));
+        passLabel.setFont(Theme.FONT);
         passLabel.setForeground(Theme.COLOR);
 
         passField = new JPasswordField(20);
         passField.setFont(Theme.FONT);
         passField.setForeground(Theme.COLOR);
         passField.setBorder(new LineBorder(Theme.COLOR));
+
+        // Form
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        formPanel.setMaximumSize(size);
+        formPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5); // margin antar komponen
+        gbc.anchor = GridBagConstraints.WEST; // rata kiri
+
+        gbc.gridx = 0; 
+        gbc.gridy = 0;
+        formPanel.add(userLabel, gbc);
+
+        gbc.gridx = 1;
+        formPanel.add(userField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        formPanel.add(passLabel, gbc);
+
+        gbc.gridx = 1;
+        formPanel.add(passField, gbc);
 
         // == BUTTON ==
         JButton registerButton = new JButton("Register");
@@ -75,6 +99,14 @@ public class LoginPage extends JPanel{
             }
         });
 
+        // Register Or Login Component
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 0, 0));
+        buttonPanel.setOpaque(false);
+
+        buttonPanel.setMaximumSize(size);
+        buttonPanel.add(registerButton);
+        buttonPanel.add(loginButton);
+
         // Button Process
         loginRegisterButton = new JButton("->");
         loginRegisterButton.setOpaque(false);
@@ -85,81 +117,18 @@ public class LoginPage extends JPanel{
         loginRegisterButton.setFocusPainted(false);
         loginRegisterButton.addActionListener((e) -> { processRegisterOrLogin(); });
 
-        // ===============================
-        //   PENGATURAN KOMPONEN LOGINPAGE
-        // ===============================
-        setLayout(new GridBagLayout()); // supaya container bisa ditaruh di tengah
-        setBackground(Theme.BACK_COLOR);
+        // Atur Button Process
+        JPanel logRegPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        logRegPanel.setOpaque(false);
+        logRegPanel.setMaximumSize(size);
+        
+        logRegPanel.add(loginRegisterButton);
 
-        // PANEL PEMBATAS (form tidak melebar ke seluruh layar)
-        JPanel container = new JPanel(new GridBagLayout());
-        container.setOpaque(false);
-        container.setPreferredSize(new Dimension(420, 260));
-        container.setMaximumSize(new Dimension(420, 260));
-
-        // ===== BUTTON LOGIN & REGISTER (TOP PANEL) =====
-        JPanel topPanel = new JPanel(new GridLayout(1, 2, 0, 0));
-        topPanel.setOpaque(false);
-        topPanel.add(registerButton);
-        topPanel.add(loginButton);
-
-        // GridBagConstraints untuk container
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 10, 5, 10);
-
-        // ==== BARIS 0: LOGIN & REGISTER BUTTON ====
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        container.add(topPanel, gbc);
-
-        // reset gridwidth
-        gbc.gridwidth = 1;
-
-        // ==== BARIS 1: LABEL USERNAME ====
-        gbc.weightx = 0;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.LINE_END;
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        container.add(userLabel, gbc);
-
-        // ==== BARIS 2: FIELD USERNAME ====
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridx = 1;
-        container.add(userField, gbc);
-
-        // ==== BARIS 3: LABEL PASSWORD ====
-        gbc.weightx = 0;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.LINE_END;
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        container.add(passLabel, gbc);
-
-        // ==== BARIS 4: FIELD PASSWORD ====
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridx = 1;
-        container.add(passField, gbc);
-
-        // ==== BARIS 5: TOMBOL PANAH (->) ====
-        gbc.gridy = 3;
-        gbc.gridx = 1;
-        gbc.weightx = 0;
-        gbc.anchor = GridBagConstraints.LINE_END;
-        gbc.fill = GridBagConstraints.NONE;
-        container.add(loginRegisterButton, gbc);
-
-        // MASUKKAN container KE PANEL TENGAH
-        GridBagConstraints mainGbc = new GridBagConstraints();
-        mainGbc.gridx = 0;
-        mainGbc.gridy = 0;
-        mainGbc.anchor = GridBagConstraints.CENTER;
-
-        add(container, mainGbc);
+        add(Box.createVerticalStrut(200));
+        add(buttonPanel);
+        add(formPanel);
+        add(logRegPanel);
+        add(Box.createVerticalStrut(500));
     }
 
     private void processRegisterOrLogin() {
