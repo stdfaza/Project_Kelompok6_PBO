@@ -40,8 +40,6 @@ public class Main extends JFrame {
 
     public void showPage(String page) {
         cardLayout.show(mainPage, page);
-        // Hapus pemanggilan gamePage.startGame() disini agar tidak bentrok
-        // Logika start game sekarang dihandle tombol New Game / Continue
     }
 
     public void showScene(Scene s) {
