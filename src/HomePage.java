@@ -21,9 +21,12 @@ public class HomePage extends JPanel {
         JPanel wrapper = new JPanel(new GridBagLayout());
         wrapper.setOpaque(false);
 
-        JPanel centerPanel = new JPanel();
-        centerPanel.setOpaque(false);
+        RoundedPanel centerPanel = new RoundedPanel(
+            40,                           // sudut rounded
+            new Color(255, 255, 255, 128) // putih transparansi 50% (128/255)
+        );
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+        centerPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40)); // padding
 
         Font roboto = new Font("Roboto", Font.BOLD, 24);
 
@@ -115,6 +118,29 @@ public class HomePage extends JPanel {
             g2.setColor(getForeground());
             g2.drawString(getText(), textX, textY);
             g2.dispose();
+        }
+    }
+
+    static class RoundedPanel extends JPanel {
+        private final int arc;
+        private final Color bg;
+
+        public RoundedPanel(int arc, Color bg) {
+            this.arc = arc;
+            this.bg = bg;
+            setOpaque(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setColor(bg);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
+
+            g2.dispose();
+            super.paintComponent(g);
         }
     }
 }
