@@ -19,8 +19,8 @@ public class ScenePage extends JPanel {
 
                 dialogIndex++;
                 
-                // PERBAIKAN 1: Gunakan scene.dialog.length
-                if(dialogIndex >= scene.dialog.length) {
+                // Cek apakah dialog sudah habis
+                if(dialogIndex >= scene.script.length) {
                     main.showGame(); 
                 } else {
                     repaint(); 
@@ -41,7 +41,7 @@ public class ScenePage extends JPanel {
 
         if(scene == null) return;
 
-        // 1. Background
+        // 1. Gambar Background
         if (scene.background != null) {
             g.drawImage(scene.background, 0, 0, getWidth(), getHeight(), this);
         } else {
@@ -49,21 +49,54 @@ public class ScenePage extends JPanel {
             g.fillRect(0, 0, getWidth(), getHeight());
         }
 
-        // 2. Character
-        if (scene.character != null)
-            g.drawImage(scene.character, 400, 120, 400, 500, this);
-
-        // 3. Dialogue Box
-        g.setColor(new Color(0, 0, 0, 180));
-        g.fillRoundRect(50, 500, 1180, 150, 20, 20);
-
-        // 4. Text
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.PLAIN, 24));
+        // Ambil Data Dialog Saat Ini
+        String speaker = "";
+        String text = "";
         
-        // PERBAIKAN 2 (Baris 50): Gunakan scene.dialog
-        if (scene.dialog != null && dialogIndex < scene.dialog.length) {
-            g.drawString(scene.dialog[dialogIndex], 70, 560);
+        if (dialogIndex < scene.script.length) {
+            speaker = scene.script[dialogIndex][0];
+            text = scene.script[dialogIndex][1];
         }
+
+        // 2. Gambar Karakter (Bergantian berdasarkan Speaker)
+        if (speaker.equalsIgnoreCase("AI")) {
+            // Tampilkan AI di sebelah Kanan
+            if (scene.aiCharacter != null) {
+                // Posisi agak ke kanan (Width - 400 - margin)
+                int xPos = getWidth() - 450; 
+                g.drawImage(scene.aiCharacter, xPos, 100, 400, 500, this);
+            }
+        } else {
+            // Tampilkan Astronot di sebelah Kiri
+            if (scene.character != null) {
+                g.drawImage(scene.character, 50, 100, 400, 500, this);
+            }
+        }
+
+        // 3. Kotak Dialog
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        g2.setColor(new Color(0, 0, 0, 200)); // Hitam transparan
+        g2.fillRoundRect(50, getHeight() - 200, getWidth() - 100, 150, 20, 20);
+        
+        g2.setColor(Color.WHITE);
+        g2.setStroke(new BasicStroke(2));
+        g2.drawRoundRect(50, getHeight() - 200, getWidth() - 100, 150, 20, 20);
+
+        // 4. Nama Speaker (Kuning agar menonjol)
+        g.setFont(new Font("Roboto", Font.BOLD, 28));
+        g.setColor(new Color(255, 215, 0)); // Gold
+        g.drawString(speaker, 80, getHeight() - 160);
+
+        // 5. Teks Dialog
+        g.setFont(new Font("Arial", Font.PLAIN, 22));
+        g.setColor(Color.WHITE);
+        g.drawString(text, 80, getHeight() - 120);
+        
+        // Hint klik
+        g.setFont(new Font("Arial", Font.ITALIC, 14));
+        g.setColor(Color.GRAY);
+        g.drawString("[Klik untuk lanjut]", getWidth() - 200, getHeight() - 70);
     }
 }
