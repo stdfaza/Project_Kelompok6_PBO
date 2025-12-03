@@ -35,7 +35,7 @@ public class Main extends JFrame {
         mainPage.add(endingPage, "EndingPage");
 
         add(mainPage);
-        showPage("LoginPage");
+        showPage("HomePage");
     }
 
     public void showPage(String page) {
