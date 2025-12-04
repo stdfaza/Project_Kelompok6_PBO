@@ -1,17 +1,25 @@
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class HomePage extends JPanel {
+public class HomePage extends JPanel implements Page {
 
     private Image backgroundImage;
+    private Clip bgmClip;
     private Main main;
 
     public HomePage(Main main) {
         this.main = main;
 
+        loadBGM("/assets/audio/slow-travel.wav");
+        System.out.println("HOME BGM URL = " + getClass().getResource("/assets/audio/menu.wav"));
+
+
         try {
-            backgroundImage = new ImageIcon(getClass().getResource("/assets/page/landing-page.png")).getImage();
+            backgroundImage = new ImageIcon(getClass().getResource("/assets/page/login-page.png")).getImage();
         } catch (Exception e) {
             backgroundImage = null;
         }
@@ -141,6 +149,42 @@ public class HomePage extends JPanel {
 
             g2.dispose();
             super.paintComponent(g);
+        }
+    }
+
+    public void loadBGM(String path) {
+        try {
+            if (bgmClip != null && bgmClip.isRunning()) {
+                bgmClip.stop();
+                bgmClip.close();
+            }
+
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(HomePage.class.getResource(path));
+
+            bgmClip = AudioSystem.getClip();
+            bgmClip.open(audioStream);
+            bgmClip.loop(Clip.LOOP_CONTINUOUSLY);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stopBGM() {
+        if (bgmClip != null) {
+            bgmClip.stop();
+            bgmClip.close();
+        }
+    }
+
+    @Override
+    public void setVisible(boolean flag) {
+        super.setVisible(flag);
+        if (!flag) {
+            stopBGM();
+        } else {
+            bgmClip.start();
+            IO.println("BGN Clio0");
+            IO.println(bgmClip);
         }
     }
 }

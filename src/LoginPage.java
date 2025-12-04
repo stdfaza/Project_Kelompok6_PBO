@@ -1,19 +1,24 @@
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
-import java.awt.event.*;;
+import java.awt.event.*;
+import java.io.File;
 
-public class LoginPage extends JPanel{
+public class LoginPage extends JPanel implements Page {
     private Main main;
     private Image backgroundImage;
     private JTextField userField;
     private JPasswordField passField;
     private int loginRegister = -1;
     private JButton loginRegisterButton;
-    private Dimension size = new Dimension(500, Integer.MAX_VALUE);
+    private Clip bgmClip;
 
     public LoginPage(Main main) {
         this.main = main;
+        loadBGM("/assets/audio/menu.wav");
 
         try {
             backgroundImage = new ImageIcon(getClass().getResource("/assets/page/login-page.png")).getImage();
@@ -21,9 +26,6 @@ public class LoginPage extends JPanel{
             System.out.println("no background found in LoginPage");
         }
 
-        setLayout(new GridBagLayout());
-        setBackground(Theme.BACK_COLOR);
-        
         // Usename
         JLabel userLabel = new JLabel("Username");
         userLabel.setFont(Theme.FONT.deriveFont(Font.BOLD));
@@ -44,11 +46,12 @@ public class LoginPage extends JPanel{
         passField.setForeground(Theme.COLOR);
         passField.setBorder(new LineBorder(Theme.COLOR));
 
-        // == BUTTON ==
+        // Button Register dan Login
         JButton registerButton = new JButton("Register");
         registerButton.setFont(Theme.FONT);
         registerButton.setBackground(Theme.COLOR);
         registerButton.setForeground(Theme.WHITE_TEXT);
+        registerButton.setBorderPainted(false);
         registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         registerButton.setFocusPainted(false);
         registerButton.addActionListener((e) -> { loginRegister = 0; });
@@ -57,6 +60,7 @@ public class LoginPage extends JPanel{
         loginButton.setFont(Theme.FONT);
         loginButton.setBackground(Theme.COLOR);
         loginButton.setForeground(Theme.WHITE_TEXT);
+        loginButton.setBorderPainted(false);
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         loginButton.setFocusPainted(false);
         loginButton.addActionListener((e) -> { loginRegister = 1; });
@@ -85,9 +89,6 @@ public class LoginPage extends JPanel{
         loginRegisterButton.setFocusPainted(false);
         loginRegisterButton.addActionListener((e) -> { processRegisterOrLogin(); });
 
-        // ===============================
-        //   PENGATURAN KOMPONEN LOGINPAGE
-        // ===============================
         setLayout(new GridBagLayout()); // supaya container bisa ditaruh di tengah
         setBackground(Theme.BACK_COLOR);
 
@@ -97,7 +98,7 @@ public class LoginPage extends JPanel{
         container.setPreferredSize(new Dimension(420, 260));
         container.setMaximumSize(new Dimension(420, 260));
 
-        // ===== BUTTON LOGIN & REGISTER (TOP PANEL) =====
+        // Panel atas
         JPanel topPanel = new JPanel(new GridLayout(1, 2, 0, 0));
         topPanel.setOpaque(false);
         topPanel.add(registerButton);
@@ -107,7 +108,7 @@ public class LoginPage extends JPanel{
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 10, 5, 10);
 
-        // ==== BARIS 0: LOGIN & REGISTER BUTTON ====
+        // Baris 0: login and register button
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
@@ -117,7 +118,7 @@ public class LoginPage extends JPanel{
         // reset gridwidth
         gbc.gridwidth = 1;
 
-        // ==== BARIS 1: LABEL USERNAME ====
+        // Baris 1 Kolom 0: label username
         gbc.weightx = 0;
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.LINE_END;
@@ -125,13 +126,13 @@ public class LoginPage extends JPanel{
         gbc.gridy = 1;
         container.add(userLabel, gbc);
 
-        // ==== BARIS 2: FIELD USERNAME ====
+        // Baris 1 Kolom 1: field username
         gbc.weightx = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 1;
         container.add(userField, gbc);
 
-        // ==== BARIS 3: LABEL PASSWORD ====
+        // Baris 2 Kolom 0: label password
         gbc.weightx = 0;
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.LINE_END;
@@ -139,13 +140,13 @@ public class LoginPage extends JPanel{
         gbc.gridy = 2;
         container.add(passLabel, gbc);
 
-        // ==== BARIS 4: FIELD PASSWORD ====
+        // Baris 2 Kolom 1: field password
         gbc.weightx = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 1;
         container.add(passField, gbc);
 
-        // ==== BARIS 5: TOMBOL PANAH (->) ====
+        // Baris 3 Kolom 1: tombol panah (->)
         gbc.gridy = 3;
         gbc.gridx = 1;
         gbc.weightx = 0;
@@ -153,7 +154,7 @@ public class LoginPage extends JPanel{
         gbc.fill = GridBagConstraints.NONE;
         container.add(loginRegisterButton, gbc);
 
-        // MASUKKAN container KE PANEL TENGAH
+        // Masukkan container KE PANEL TENGAH
         GridBagConstraints mainGbc = new GridBagConstraints();
         mainGbc.gridx = 0;
         mainGbc.gridy = 0;
@@ -247,6 +248,38 @@ public class LoginPage extends JPanel{
 
         if (backgroundImage != null) {
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+        }
+    }
+
+    public void loadBGM(String path) {
+    try {
+        if (bgmClip != null && bgmClip.isRunning()) {
+            bgmClip.stop();
+            bgmClip.close();
+        }
+
+        AudioInputStream audioStream = AudioSystem.getAudioInputStream(getClass().getResource(path));
+
+        bgmClip = AudioSystem.getClip();
+        bgmClip.open(audioStream);
+        bgmClip.loop(Clip.LOOP_CONTINUOUSLY);
+        bgmClip.start();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stopBGM() {
+        bgmClip.stop();
+            
+    }
+
+    @Override
+    public void setVisible(boolean flag) {
+        super.setVisible(flag);
+        if (!flag) {
+            stopBGM();
         }
     }
 }
