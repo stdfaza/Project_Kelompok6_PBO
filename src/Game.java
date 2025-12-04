@@ -297,9 +297,9 @@ public class Game extends GameBase {
         };
 
         scenes.add(new Scene(1, 
-            "/assets/bg_space.png", 
+            "/assets/scene/background2.png", 
             "/assets/scene/astronout.png", 
-            "/assets/scene/ai_avatar.png", 
+            "/assets/scene/ai.png", 
             introScript
         ));
     }
