@@ -1,3 +1,6 @@
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -7,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 // SEKARANG TURUNAN DARI GameBase
-public class Game extends GameBase {
+public class Game extends GameBase implements Page {
 
     // --- GAME VARIABLES ---
     private int day;
@@ -27,10 +30,12 @@ public class Game extends GameBase {
     // UI Assets
     private Image bgImage;
     private JButton btnNotification;
+    private Clip bgmClip;
 
     public Game(Main main) {
         super(main); // Panggil constructor GameBase
 
+        loadBGM("/assets/audio/menu.wav");
         loadAssets();
         initScene();
         setupUI();
@@ -512,6 +517,39 @@ public class Game extends GameBase {
         isGameOver = true;
         running = false;
         saveProgress(true);
-        main.showEnding("GAME OVER", reason, "assets/ending/lose.jpg", false);
+        main.showEnding("GAME OVER", reason, "/assets/ending/lose.jpg", false);
+    }
+
+    public void loadBGM(String path) {
+        try {
+            if (bgmClip != null && bgmClip.isRunning()) {
+                bgmClip.stop();
+                bgmClip.close();
+            }
+
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(getClass().getResource(path));
+
+            bgmClip = AudioSystem.getClip();
+            bgmClip.open(audioStream);
+            bgmClip.loop(Clip.LOOP_CONTINUOUSLY);
+            bgmClip.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stopBGM() {
+        if (bgmClip != null) {
+            bgmClip.stop();
+            bgmClip.close();
+        }
+    }
+
+    @Override
+    public void setVisible(boolean flag) {
+        super.setVisible(flag);
+        if (!flag) {
+            stopBGM();
+        }
     }
 }
