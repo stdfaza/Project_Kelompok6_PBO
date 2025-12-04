@@ -66,26 +66,36 @@ public class EndingPage extends JPanel {
         titleLabel.setText(title);
         descriptionArea.setText(description);
 
-        // Atur warna judul: Hijau jika menang, Merah jika kalah
+        // Atur warna judul
         if (isWin) {
             titleLabel.setForeground(Color.GREEN);
         } else {
             titleLabel.setForeground(Color.RED);
         }
 
-        // Load Gambar
+        // --- PERBAIKAN LOAD GAMBAR ---
         try {
-            // Menggunakan getResource jika di dalam folder src/assets, 
-            // atau gunakan ImageIcon(path) biasa jika file di root folder project.
-            // Sesuaikan dengan struktur folder kamu.
-            // Di sini saya asumsikan file ada di root project folder "assets/ending/..."
-            endingImage = new ImageIcon(imagePath).getImage();
+            // 1. Pastikan path dimulai dengan "/" agar dibaca dari root folder src
+            if (!imagePath.startsWith("/")) {
+                imagePath = "/" + imagePath;
+            }
+
+            // 2. Gunakan getResource untuk mencari file di dalam classpath (src)
+            java.net.URL imgUrl = getClass().getResource(imagePath);
+
+            if (imgUrl != null) {
+                endingImage = new ImageIcon(imgUrl).getImage();
+                System.out.println("Sukses load gambar: " + imagePath);
+            } else {
+                System.err.println("ERROR: Gambar tidak ditemukan di path: " + imagePath);
+                endingImage = null; // Ini yang bikin layar hitam
+            }
         } catch (Exception e) {
-            System.out.println("Gagal load gambar ending: " + imagePath);
-            endingImage = null; // Jadi hitam
+            System.err.println("Exception saat load gambar: " + e.getMessage());
+            endingImage = null;
         }
 
-        repaint();
+        repaint(); // Gambar ulang layar
     }
 
     @Override

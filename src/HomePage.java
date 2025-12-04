@@ -14,12 +14,11 @@ public class HomePage extends JPanel implements Page {
     public HomePage(Main main) {
         this.main = main;
 
-        loadBGM("/assets/audio/slow-travel.wav");
-        System.out.println("HOME BGM URL = " + getClass().getResource("/assets/audio/menu.wav"));
-
+        // GANTI DENGAN NAMA FILE LAGU BERANDA KAMU
+        loadBGM("/assets/audio/slow-travel.wav"); 
 
         try {
-            backgroundImage = new ImageIcon(getClass().getResource("/assets/page/login-page.png")).getImage();
+            backgroundImage = new ImageIcon(getClass().getResource("/assets/page/landing-page.png")).getImage();
         } catch (Exception e) {
             backgroundImage = null;
         }
@@ -30,11 +29,11 @@ public class HomePage extends JPanel implements Page {
         wrapper.setOpaque(false);
 
         RoundedPanel centerPanel = new RoundedPanel(
-            40,                           // sudut rounded
-            new Color(255, 255, 255, 128) // putih transparansi 50% (128/255)
+            40,                           
+            new Color(255, 255, 255, 128) 
         );
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
-        centerPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40)); // padding
+        centerPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40)); 
 
         Font roboto = new Font("Roboto", Font.BOLD, 24);
 
@@ -42,13 +41,12 @@ public class HomePage extends JPanel implements Page {
         RoundedButton btnNewGame = new RoundedButton("NEW GAME", 35);
         setupButtonStyle(btnNewGame, new Color(46, 204, 113), roboto);
         btnNewGame.addActionListener(e -> {
-            // Konfirmasi jika mau New Game (takut kepencet)
             int choice = JOptionPane.showConfirmDialog(this, 
                 "Start New Game? Data lama akan tertimpa.", 
                 "Warning", JOptionPane.YES_NO_OPTION);
                 
             if (choice == JOptionPane.YES_OPTION) {
-                main.startNewGame(); // Panggil method di Main
+                main.startNewGame(); 
             }
         });
 
@@ -56,7 +54,7 @@ public class HomePage extends JPanel implements Page {
         RoundedButton btnContinue = new RoundedButton("CONTINUE", 35);
         setupButtonStyle(btnContinue, new Color(52, 152, 219), roboto);
         btnContinue.addActionListener(e -> {
-            main.continueGame(); // Panggil method di Main
+            main.continueGame(); 
         });
 
         // ========= 3. BUTTON EXIT =========
@@ -66,7 +64,7 @@ public class HomePage extends JPanel implements Page {
 
         centerPanel.add(btnNewGame);
         centerPanel.add(Box.createVerticalStrut(20));
-        centerPanel.add(btnContinue); // Tombol Continue Ditambahkan
+        centerPanel.add(btnContinue);
         centerPanel.add(Box.createVerticalStrut(20));
         centerPanel.add(btnExit);
 
@@ -74,7 +72,6 @@ public class HomePage extends JPanel implements Page {
         add(wrapper, BorderLayout.CENTER);
     }
     
-    // Helper untuk mempersingkat styling tombol
     private void setupButtonStyle(RoundedButton btn, Color color, Font font) {
         btn.setFont(font);
         btn.setBackground(color);
@@ -99,7 +96,7 @@ public class HomePage extends JPanel implements Page {
         }
     }
 
-    // Helper Class untuk Tombol Bulat
+    // Helper Class UI (RoundedButton & RoundedPanel) tetap sama
     static class RoundedButton extends JButton {
         private final int arc;
         public RoundedButton(String text, int arc) {
@@ -132,59 +129,61 @@ public class HomePage extends JPanel implements Page {
     static class RoundedPanel extends JPanel {
         private final int arc;
         private final Color bg;
-
         public RoundedPanel(int arc, Color bg) {
             this.arc = arc;
             this.bg = bg;
             setOpaque(false);
         }
-
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
             g2.setColor(bg);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
-
             g2.dispose();
             super.paintComponent(g);
         }
     }
 
+    // --- IMPLEMENTASI MUSIK ---
+    @Override
     public void loadBGM(String path) {
         try {
-            if (bgmClip != null && bgmClip.isRunning()) {
+            if (bgmClip != null) {
                 bgmClip.stop();
                 bgmClip.close();
             }
-
-            AudioInputStream audioStream = AudioSystem.getAudioInputStream(HomePage.class.getResource(path));
-
+            // Load audio
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(getClass().getResource(path));
             bgmClip = AudioSystem.getClip();
             bgmClip.open(audioStream);
-            bgmClip.loop(Clip.LOOP_CONTINUOUSLY);
         } catch (Exception e) {
+            System.out.println("Gagal load BGM HomePage: " + path);
             e.printStackTrace();
         }
     }
 
+    @Override
     public void stopBGM() {
-        if (bgmClip != null) {
+        if (bgmClip != null && bgmClip.isRunning()) {
             bgmClip.stop();
-            bgmClip.close();
         }
     }
 
+    // Saat halaman ditampilkan/disembunyikan oleh CardLayout
     @Override
     public void setVisible(boolean flag) {
         super.setVisible(flag);
-        if (!flag) {
-            stopBGM();
+        if (flag) {
+            // Halaman muncul -> Mainkan musik (Loop)
+            if (bgmClip != null) {
+                bgmClip.setFramePosition(0); // Reset ke awal
+                bgmClip.loop(Clip.LOOP_CONTINUOUSLY);
+                bgmClip.start();
+            }
         } else {
-            bgmClip.start();
-            IO.println("BGN Clio0");
-            IO.println(bgmClip);
+            // Halaman hilang -> Stop musik
+            stopBGM();
         }
     }
 }

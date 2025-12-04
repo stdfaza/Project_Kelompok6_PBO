@@ -21,8 +21,6 @@ public class Game extends GameBase implements Page {
     private boolean isGameOver;
     private boolean running = true;
     
-    // NOTE: logHistory dihapus disini karena sudah ada di GameBase
-    
     // Scene System
     private List<Scene> scenes = new ArrayList<>();
     private Thread sceneThread;
@@ -30,12 +28,17 @@ public class Game extends GameBase implements Page {
     // UI Assets
     private Image bgImage;
     private JButton btnNotification;
-    private Clip bgmClip;
+    
+    // --- AUDIO CLIPS ---
+    private Clip bgmClip;       // Musik Background Utama
+    private Clip miniGameClip;  // Musik saat Mini Game Meteor
 
     public Game(Main main) {
         super(main); // Panggil constructor GameBase
 
-        loadBGM("/assets/audio/menu.wav");
+        // Load Musik Utama (Ganti path sesuai file kamu)
+        loadBGM("/assets/audio/meet-the-princess.wav"); 
+        
         loadAssets();
         initScene();
         setupUI();
@@ -60,8 +63,8 @@ public class Game extends GameBase implements Page {
         leftPanel.setBorder(new EmptyBorder(20, 20, 0, 0)); 
 
         // PANGGIL FUNGSI DARI GAMEBASE
-        JButton btnOxygen = createImageButton("/assets/icon/image2.png", "Recycle Oxygen");
-        JButton btnFood = createImageButton("/assets/icon/image.jpg", "Synthesize Food");
+        JButton btnOxygen = createImageButton("/assets/icon/oxygenicon.png", "Recycle Oxygen");
+        JButton btnFood = createImageButton("/assets/icon/foodicon.png", "Synthesize Food");
 
         btnOxygen.addActionListener(e -> performAction("OXYGEN"));
         btnFood.addActionListener(e -> performAction("FOOD"));
@@ -75,7 +78,7 @@ public class Game extends GameBase implements Page {
         rightPanel.setOpaque(false);
         rightPanel.setBorder(new EmptyBorder(20, 0, 0, 20));
 
-        btnNotification = createImageButton("/assets/icon/image3.png", "Check Status & Log");
+        btnNotification = createImageButton("/assets/icon/notificationicon.png", "Check Status & Log");
         btnNotification.addActionListener(e -> showStatusPopup());
         
         rightPanel.add(btnNotification);
@@ -85,7 +88,7 @@ public class Game extends GameBase implements Page {
         bottomPanel.setOpaque(false);
         bottomPanel.setBorder(new EmptyBorder(0, 0, 20, 20));
 
-        JButton btnNextDay = createImageButton("/assets/btn_next.png", "Solar Charge (Next Day)");
+        JButton btnNextDay = createImageButton("/assets/icon/daychangeicon.png", "Solar Charge (Next Day)");
         btnNextDay.addActionListener(e -> endDay());
         bottomPanel.add(btnNextDay);
 
@@ -94,37 +97,32 @@ public class Game extends GameBase implements Page {
         add(bottomPanel, BorderLayout.SOUTH);
     }
     
-    // --- POP-UP STATUS SYSTEM (Gaya Industrial Metal) ---
+    // ... (Kode showStatusPopup SAMA SEPERTI SEBELUMNYA) ...
+    // ... Agar kode tidak terlalu panjang, saya persingkat bagian yang tidak berubah ...
     private void showStatusPopup() {
+        // (Copy isi showStatusPopup dari kode sebelumnya di sini)
+        // Pastikan kodenya sama persis dengan versi "Industrial Metal" terakhir
         JDialog popup = new JDialog(main, "System Status", true);
         popup.setSize(400, 550);
         popup.setLocationRelativeTo(main);
         popup.setUndecorated(true);
-
-        // Transparan di sudut
         popup.setBackground(new Color(0, 0, 0, 0));
         ((JComponent) popup.getContentPane()).setOpaque(false);
 
-        // Definisi Warna Metalik
         Color metalDark = new Color(60, 65, 75);   
         Color metalLight = new Color(120, 130, 150); 
-        Color metalButton = new Color(200, 60, 60); // Merah
+        Color metalButton = new Color(200, 60, 60); 
         Color metalButtonHover = new Color(230, 80, 80); 
         Color cyanNeon = new Color(100, 255, 255); 
         Color borderDark = new Color(40, 40, 40); 
         
-        // Panel Utama Pop-up
         JPanel panel = new JPanel(new BorderLayout(0, 15)) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // BACKGROUND POP-UP
                 g2.setColor(metalDark); 
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20); 
-                
-                // BORDER POP-UP
                 g2.setColor(metalLight); 
                 g2.setStroke(new BasicStroke(3));
                 g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, 20, 20);
@@ -133,63 +131,37 @@ public class Game extends GameBase implements Page {
         };
         panel.setOpaque(false);
         panel.setBorder(new EmptyBorder(25, 25, 25, 25));
-        
-        // --- FONT SETUP ---
         Font titleFont = Theme.FONT.deriveFont(Font.BOLD, 18f);
         Font logFont = Theme.FONT.deriveFont(Font.PLAIN, 14f);
-
-        // --- 1. BAGIAN ATAS (STATS) ---
         JPanel statsPanel = new JPanel(new GridLayout(4, 1));
         statsPanel.setBackground(metalDark.darker()); 
-        statsPanel.setBorder(new CompoundBorder(
-                new LineBorder(metalLight, 2), 
-                new EmptyBorder(10, 15, 10, 15))); 
-        
-        // PANGGIL FUNGSI DARI GAMEBASE
+        statsPanel.setBorder(new CompoundBorder(new LineBorder(metalLight, 2), new EmptyBorder(10, 15, 10, 15))); 
         statsPanel.add(createPopupLabel("DAY: " + day + "/10", titleFont));
         statsPanel.add(createPopupLabel("OXYGEN: " + oxygen + "%", oxygen < 20, titleFont));
         statsPanel.add(createPopupLabel("FOOD: " + food + "%", food < 20, titleFont));
         statsPanel.add(createPopupLabel("POWER: " + power + "%", power < 20, titleFont));
-        
-        // --- 2. BAGIAN TENGAH (LOG AREA) ---
         JTextArea popupLog = new JTextArea();
-        // logHistory diambil dari GameBase
         String textToShow = logHistory.length() > 0 ? logHistory.toString() : "System ready...\nNo logs yet.";
         popupLog.setText(textToShow); 
         popupLog.setEditable(false);
-        
         popupLog.setOpaque(false);
         popupLog.setForeground(cyanNeon); 
         popupLog.setFont(logFont); 
         popupLog.setLineWrap(true);
         popupLog.setWrapStyleWord(true);
         popupLog.setBorder(new EmptyBorder(10, 5, 10, 5)); 
-        
         JScrollPane scroll = new JScrollPane(popupLog);
         scroll.setOpaque(false);
         scroll.getViewport().setOpaque(false);
         scroll.setBorder(new LineBorder(metalLight, 2)); 
-        
         popupLog.setCaretPosition(popupLog.getDocument().getLength());
-
-        // --- 3. BAGIAN BAWAH (TOMBOL CLOSE) ---
         JButton btnClose = new JButton("CLOSE") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                if (getModel().isRollover()) {
-                    g2.setColor(metalButtonHover); 
-                } else {
-                    g2.setColor(metalButton); 
-                }
+                if (getModel().isRollover()) { g2.setColor(metalButtonHover); } else { g2.setColor(metalButton); }
                 g2.fillRect(0, 0, getWidth(), getHeight()); 
-                
-                g2.setColor(metalLight.brighter()); 
-                g2.setStroke(new BasicStroke(2));
-                g2.drawRoundRect(1, 1, getWidth()-2, getHeight()-2, 15, 15);
-
                 g2.setColor(Theme.WHITE_TEXT);
                 g2.setFont(Theme.FONT.deriveFont(Font.BOLD, 16f));
                 FontMetrics fm = g2.getFontMetrics();
@@ -205,15 +177,12 @@ public class Game extends GameBase implements Page {
         btnClose.setContentAreaFilled(false);
         btnClose.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnClose.addActionListener(e -> popup.dispose());
-
         JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         footerPanel.setOpaque(false);
         footerPanel.add(btnClose);
-
         panel.add(statsPanel, BorderLayout.NORTH);
         panel.add(scroll, BorderLayout.CENTER);
         panel.add(footerPanel, BorderLayout.SOUTH);
-
         popup.add(panel);
         popup.setVisible(true);
     }
@@ -231,20 +200,13 @@ public class Game extends GameBase implements Page {
 
     @Override
     public void startNewGame() {
-        day = 1; 
-        oxygen = 100; 
-        food = 100; 
-        power = 100; 
-        starvationDays = 0;
-        isGameOver = false; 
-        running = true;
+        day = 1; oxygen = 100; food = 100; power = 100; 
+        starvationDays = 0; isGameOver = false; running = true;
         
-        for(Scene s : scenes) {
-            s.hasPlayed = false;
-        }
+        for(Scene s : scenes) s.hasPlayed = false;
         
         logHistory.setLength(0);
-        appendLog("=== NEW GAME STARTED ==="); // Pakai fungsi GameBase
+        appendLog("=== NEW GAME STARTED ==="); 
         appendLog("System Online. Good luck, Astronaut.");
         
         saveProgress(false); 
@@ -267,15 +229,12 @@ public class Game extends GameBase implements Page {
             this.oxygen = data[1];
             this.food = data[2];
             this.power = data[3];
-            
             this.starvationDays = 0;
             this.isGameOver = false;
             this.running = true;
-            
             logHistory.setLength(0);
             appendLog("=== GAME LOADED ===");
             appendLog("Welcome back. Day " + day + " loaded.");
-            
             startSceneEvent();
         } else {
             startNewGame();
@@ -293,12 +252,12 @@ public class Game extends GameBase implements Page {
             {"Azkal", "Ugh... kepalaku sakit sekali. Dimana ini?"},
             {"AI", "Sistem pendukung hidup: Online. Selamat pagi, Kapten Azkal."},
             {"Azkal", "Suara itu... AI Pesawat? Apa yang terjadi? Dimana Bumi?"},
-            {"AI", "Laporan status: Meteor besar telah menghantam Bumi. Tidak ada sinyal kehidupan yang terdeteksi dari permukaan."},
+            {"AI", "Laporan status: Meteor besar telah menghantam Bumi."},
             {"Azkal", "Tidak mungkin... Hancur? Semuanya?"},
-            {"AI", "Afirmatif. Kita adalah satu-satunya unit yang selamat di sektor ini. Persediaan menipis."},
+            {"AI", "Afirmatif. Kita adalah satu-satunya unit yang selamat."},
             {"Azkal", "Berapa lama kita bisa bertahan?"},
-            {"AI", "Estimasi: 10 hari sebelum kegagalan sistem total. Sinyal bantuan sedang dipindai."},
-            {"Azkal", "10 hari... Baik. Aku tidak akan mati di sini. Mari kita mulai bekerja."}
+            {"AI", "Estimasi: 10 hari sebelum kegagalan sistem total."},
+            {"Azkal", "10 hari... Baik. Mari kita mulai bekerja."}
         };
 
         scenes.add(new Scene(1, 
@@ -315,9 +274,7 @@ public class Game extends GameBase implements Page {
             appendLog("⚠ POWER LOW! Action Failed.");
             return;
         }
-
         power -= 20;
-
         if (action.equals("OXYGEN")) {
             oxygen = Math.min(100, oxygen + 30);
             appendLog(">>> Player: Menambah Oksigen (+30%).");
@@ -330,22 +287,14 @@ public class Game extends GameBase implements Page {
     @Override
     public void endDay() {
         if (isGameOver) return;
-
         appendLog("\n[SYSTEM] : Day " + day + " Ended.");
         power = Math.min(100, power + 50);
         int drain = 15;
         oxygen -= drain;
         food -= drain;
-
         triggerRandomEvent();
         appendLog("[SYSTEM] : Resource decreased (-" + drain + "%)");
-
-        if (oxygen <= 0) { 
-            oxygen = 0; 
-            triggerGameOver("Kehabisan Oksigen."); 
-            return; 
-        }
-        
+        if (oxygen <= 0) { oxygen = 0; triggerGameOver("Kehabisan Oksigen."); return; }
         if (food <= 0) {
             food = 0;
             starvationDays++;
@@ -354,21 +303,18 @@ public class Game extends GameBase implements Page {
         } else {
             starvationDays = 0;
         }
-
         day++;
-        
         saveProgress(false); 
-        
         checkSceneTrigger();
         if (day > 10) winGame();
     }
     
     private void triggerRandomEvent() {
          if (Math.random() > 0.4) return; 
-
         int eventType = (int) (Math.random() * 3); 
         switch (eventType) {
             case 0: 
+                // EVENT 1: METEOR MINI GAME
                 JOptionPane.showMessageDialog(this, 
                     "⚠ WARNING: METEOR STORM DETECTED! ⚠\nKlik meteor yang muncul secepatnya!", 
                     "INCOMING THREAT", JOptionPane.WARNING_MESSAGE);
@@ -388,14 +334,19 @@ public class Game extends GameBase implements Page {
         power = Math.max(0, power);
     }
     
-    // --- MINI GAME: METEOR DEFENSE (CUSTOM ASSET & BORDERED) ---
+    // --- MINI GAME: METEOR DEFENSE (DENGAN MUSIK KHUSUS) ---
     private void startMeteorGame() {
+        // 1. STOP Musik Game Utama
+        stopBGM();
+        // 2. PLAY Musik Mini Game (Tegang)
+        // Pastikan file ini ada di folder assets
+        playMiniGameBGM("/assets/audio/battle.wav"); 
+
         JDialog gameDialog = new JDialog(main, "⚠ METEOR STORM DETECTED! ⚠", true);
         gameDialog.setSize(800, 500); 
         gameDialog.setLocationRelativeTo(main);
         gameDialog.setUndecorated(true);
         gameDialog.setLayout(null);
-        
         gameDialog.getRootPane().setBorder(new LineBorder(new Color(100, 255, 100), 4)); 
         gameDialog.getContentPane().setBackground(new Color(20, 20, 35)); 
 
@@ -433,7 +384,6 @@ public class Game extends GameBase implements Page {
             meteor.setBorderPainted(false);
             meteor.setContentAreaFilled(false);
             meteor.setFocusPainted(false);
-            
             int x = (int) (Math.random() * 700);
             int y = (int) (Math.random() * 350) + 60; 
             meteor.setBounds(x, y, 80, 80);
@@ -444,7 +394,6 @@ public class Game extends GameBase implements Page {
                 gameDialog.remove(meteor); 
                 gameDialog.repaint();
             });
-
             gameDialog.add(meteor);
             gameDialog.repaint();
 
@@ -462,6 +411,15 @@ public class Game extends GameBase implements Page {
                 ((Timer)e.getSource()).stop();
                 spawnTimer.stop();
                 gameDialog.dispose(); 
+                
+                // 3. STOP Musik Mini Game
+                stopMiniGameBGM();
+                // 4. RESUME Musik Game Utama
+                if (running) {
+                    bgmClip.loop(Clip.LOOP_CONTINUOUSLY);
+                    bgmClip.start();
+                }
+
                 evaluateMiniGameResult(score[0]);
             }
         });
@@ -474,13 +432,11 @@ public class Game extends GameBase implements Page {
     private void evaluateMiniGameResult(int score) {
         if (score >= 10) {
             appendLog("✅ PERTAHANAN SUKSES! (" + score + " hits)");
-            appendLog("Meteor berhasil dihancurkan. Kapal aman.");
             JOptionPane.showMessageDialog(this, "Great Job! Ship Secured.", "Defense Success", JOptionPane.INFORMATION_MESSAGE);
         } else {
             int damage = (10 - score) * 3;
             oxygen -= damage;
             appendLog("❌ PERTAHANAN GAGAL! (" + score + " hits)");
-            appendLog("Lambung kapal bocor! Oxygen -" + damage + "%");
             JOptionPane.showMessageDialog(this, "Impact Detected! Oxygen Leaking...", "Defense Failed", JOptionPane.WARNING_MESSAGE);
         }
         if (oxygen < 0) oxygen = 0;
@@ -509,46 +465,71 @@ public class Game extends GameBase implements Page {
     private void winGame() {
         isGameOver = true;
         running = false;
+        stopBGM(); // Stop music
         saveProgress(true); 
-        main.showEnding("MISSION SUCCESS", "Kamu berhasil bertahan hidup!", "assets/ending/win.jpg", true);
+        main.showEnding("MISSION SUCCESS", "Kamu berhasil bertahan hidup!", "/assets/ending/image.jpg", true);
     }
 
     private void triggerGameOver(String reason) {
         isGameOver = true;
         running = false;
+        stopBGM(); // Stop music
         saveProgress(true);
-        main.showEnding("GAME OVER", reason, "/assets/ending/lose.jpg", false);
+        main.showEnding("GAME OVER", reason, "/assets/scene/background2.png", false);
     }
 
+    // --- AUDIO HELPER METHODS ---
+
+    @Override
     public void loadBGM(String path) {
         try {
-            if (bgmClip != null && bgmClip.isRunning()) {
-                bgmClip.stop();
-                bgmClip.close();
-            }
-
+            if (bgmClip != null) { bgmClip.stop(); bgmClip.close(); }
             AudioInputStream audioStream = AudioSystem.getAudioInputStream(getClass().getResource(path));
-
             bgmClip = AudioSystem.getClip();
             bgmClip.open(audioStream);
-            bgmClip.loop(Clip.LOOP_CONTINUOUSLY);
-            bgmClip.start();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Error load BGM: " + path);
         }
     }
 
+    @Override
     public void stopBGM() {
-        if (bgmClip != null) {
+        if (bgmClip != null && bgmClip.isRunning()) {
             bgmClip.stop();
-            bgmClip.close();
+        }
+    }
+
+    // Helper khusus untuk Mini Game BGM
+    public void playMiniGameBGM(String path) {
+        try {
+            if (miniGameClip != null) { miniGameClip.stop(); miniGameClip.close(); }
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(getClass().getResource(path));
+            miniGameClip = AudioSystem.getClip();
+            miniGameClip.open(audioStream);
+            miniGameClip.loop(Clip.LOOP_CONTINUOUSLY); // Loop selama mini game
+            miniGameClip.start();
+        } catch (Exception e) {
+            System.out.println("Error load Mini Game BGM");
+        }
+    }
+
+    public void stopMiniGameBGM() {
+        if (miniGameClip != null && miniGameClip.isRunning()) {
+            miniGameClip.stop();
         }
     }
 
     @Override
     public void setVisible(boolean flag) {
         super.setVisible(flag);
-        if (!flag) {
+        if (flag) {
+            // Resume musik saat halaman game muncul kembali
+            if (bgmClip != null) {
+                bgmClip.loop(Clip.LOOP_CONTINUOUSLY);
+                bgmClip.start();
+            }
+        } else {
+            // Stop musik saat pindah ke halaman lain
             stopBGM();
         }
     }
