@@ -14,11 +14,10 @@ public class HomePage extends JPanel implements Page {
     public HomePage(Main main) {
         this.main = main;
 
-        // GANTI DENGAN NAMA FILE LAGU BERANDA KAMU
         loadBGM("/assets/audio/slow-travel.wav"); 
 
         try {
-            backgroundImage = new ImageIcon(getClass().getResource("/assets/page/landing-page.png")).getImage();
+            backgroundImage = new ImageIcon(getClass().getResource("/assets/scene/page.png")).getImage();
         } catch (Exception e) {
             backgroundImage = null;
         }
@@ -35,11 +34,9 @@ public class HomePage extends JPanel implements Page {
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40)); 
 
-        Font roboto = new Font("Roboto", Font.BOLD, 24);
-
         // ========= 1. BUTTON NEW GAME =========
         RoundedButton btnNewGame = new RoundedButton("NEW GAME", 35);
-        setupButtonStyle(btnNewGame, new Color(46, 204, 113), roboto);
+        setupButtonStyle(btnNewGame, new Color(143, 201, 127), Theme.FONT.deriveFont(Font.BOLD));
         btnNewGame.addActionListener(e -> {
             int choice = JOptionPane.showConfirmDialog(this, 
                 "Start New Game? Data lama akan tertimpa.", 
@@ -52,14 +49,14 @@ public class HomePage extends JPanel implements Page {
 
         // ========= 2. BUTTON CONTINUE =========
         RoundedButton btnContinue = new RoundedButton("CONTINUE", 35);
-        setupButtonStyle(btnContinue, new Color(52, 152, 219), roboto);
+        setupButtonStyle(btnContinue, Theme.COLOR, Theme.FONT.deriveFont(Font.BOLD));
         btnContinue.addActionListener(e -> {
             main.continueGame(); 
         });
 
         // ========= 3. BUTTON EXIT =========
         RoundedButton btnExit = new RoundedButton("EXIT", 35);
-        setupButtonStyle(btnExit, new Color(231, 76, 60), roboto);
+        setupButtonStyle(btnExit, new Color(219, 109, 94), Theme.FONT.deriveFont(Font.BOLD));
         btnExit.addActionListener(e -> System.exit(0));
 
         centerPanel.add(btnNewGame);
@@ -175,14 +172,12 @@ public class HomePage extends JPanel implements Page {
     public void setVisible(boolean flag) {
         super.setVisible(flag);
         if (flag) {
-            // Halaman muncul -> Mainkan musik (Loop)
             if (bgmClip != null) {
                 bgmClip.setFramePosition(0); // Reset ke awal
                 bgmClip.loop(Clip.LOOP_CONTINUOUSLY);
                 bgmClip.start();
             }
         } else {
-            // Halaman hilang -> Stop musik
             stopBGM();
         }
     }

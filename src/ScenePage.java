@@ -85,12 +85,12 @@ public class ScenePage extends JPanel {
         g2.drawRoundRect(50, getHeight() - 200, getWidth() - 100, 150, 20, 20);
 
         // 4. Nama Speaker (Kuning agar menonjol)
-        g.setFont(new Font("Roboto", Font.BOLD, 28));
+        g.setFont(Theme.FONT.deriveFont(Font.BOLD, 28));
         g.setColor(new Color(255, 215, 0)); // Gold
         g.drawString(speaker, 80, getHeight() - 160);
 
         // 5. Teks Dialog
-        g.setFont(new Font("Arial", Font.PLAIN, 22));
+        g.setFont(Theme.FONT.deriveFont(Font.PLAIN, 22));
         g.setColor(Color.WHITE);
         g.drawString(text, 80, getHeight() - 120);
         

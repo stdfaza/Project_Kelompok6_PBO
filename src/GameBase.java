@@ -38,13 +38,13 @@ public abstract class GameBase extends JPanel {
     }
 
     // 4. Fungsi Membuat Tombol Gambar dengan Error Handling
-    protected JButton createImageButton(String path, String tooltip) {
+    protected JButton createImageButton(String path, String tooltip, int height, int width) {
         JButton btn = new JButton();
         try {
             java.net.URL imgUrl = getClass().getResource(path);
             if (imgUrl != null) {
                 ImageIcon icon = new ImageIcon(imgUrl);
-                Image img = icon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+                Image img = icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
                 btn.setIcon(new ImageIcon(img));
             } else {
                 btn.setText("O"); 

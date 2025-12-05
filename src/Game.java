@@ -46,7 +46,7 @@ public class Game extends GameBase implements Page {
 
     private void loadAssets() {
         try {
-            java.net.URL imgUrl = getClass().getResource("/assets/scene/background2.png");
+            java.net.URL imgUrl = getClass().getResource("/assets/scene/background.png");
             if (imgUrl != null) {
                 bgImage = new ImageIcon(imgUrl).getImage();
             }
@@ -63,8 +63,8 @@ public class Game extends GameBase implements Page {
         leftPanel.setBorder(new EmptyBorder(20, 20, 0, 0)); 
 
         // PANGGIL FUNGSI DARI GAMEBASE
-        JButton btnOxygen = createImageButton("/assets/icon/oxygenicon.png", "Recycle Oxygen");
-        JButton btnFood = createImageButton("/assets/icon/foodicon.png", "Synthesize Food");
+        JButton btnOxygen = createImageButton("/assets/icon/oxygenicon.png", "Recycle Oxygen", 100, 100);
+        JButton btnFood = createImageButton("/assets/icon/foodicon.png", "Synthesize Food", 100, 100);
 
         btnOxygen.addActionListener(e -> performAction("OXYGEN"));
         btnFood.addActionListener(e -> performAction("FOOD"));
@@ -78,7 +78,7 @@ public class Game extends GameBase implements Page {
         rightPanel.setOpaque(false);
         rightPanel.setBorder(new EmptyBorder(20, 0, 0, 20));
 
-        btnNotification = createImageButton("/assets/icon/notificationicon.png", "Check Status & Log");
+        btnNotification = createImageButton("/assets/icon/notificationicon.png", "Check Status & Log", 150, 150);
         btnNotification.addActionListener(e -> showStatusPopup());
         
         rightPanel.add(btnNotification);
@@ -88,7 +88,7 @@ public class Game extends GameBase implements Page {
         bottomPanel.setOpaque(false);
         bottomPanel.setBorder(new EmptyBorder(0, 0, 20, 20));
 
-        JButton btnNextDay = createImageButton("/assets/icon/daychangeicon.png", "Solar Charge (Next Day)");
+        JButton btnNextDay = createImageButton("/assets/icon/daychangeicon.png", "Solar Charge (Next Day)", 120, 120);
         btnNextDay.addActionListener(e -> endDay());
         bottomPanel.add(btnNextDay);
 
@@ -261,7 +261,7 @@ public class Game extends GameBase implements Page {
         };
 
         scenes.add(new Scene(1, 
-            "/assets/scene/background2.png", 
+            "/assets/scene/background.png", 
             "/assets/scene/astronout.png", 
             "/assets/scene/ai.png", 
             introScript
@@ -355,13 +355,13 @@ public class Game extends GameBase implements Page {
 
         JLabel lblScore = new JLabel("HITS: 0");
         lblScore.setForeground(Color.GREEN);
-        lblScore.setFont(new Font("Monospaced", Font.BOLD, 24));
+        lblScore.setFont(Theme.FONT.deriveFont(Font.BOLD, 24));
         lblScore.setBounds(30, 20, 200, 30);
         gameDialog.add(lblScore);
 
         JLabel lblTime = new JLabel("TIME: 10");
         lblTime.setForeground(Color.RED);
-        lblTime.setFont(new Font("Monospaced", Font.BOLD, 24));
+        lblTime.setFont(Theme.FONT.deriveFont(Font.BOLD, 24));
         lblTime.setBounds(650, 20, 150, 30);
         gameDialog.add(lblTime);
 

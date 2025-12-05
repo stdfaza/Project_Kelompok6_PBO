@@ -5,7 +5,6 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
 
 public class LoginPage extends JPanel implements Page {
     private Main main;
@@ -21,7 +20,7 @@ public class LoginPage extends JPanel implements Page {
         loadBGM("/assets/audio/menu.wav");
 
         try {
-            backgroundImage = new ImageIcon(getClass().getResource("/assets/page/login-page.png")).getImage();
+            backgroundImage = new ImageIcon(getClass().getResource("/assets/scene/page.png")).getImage();
         } catch (Exception e) {
             System.out.println("no background found in LoginPage");
         }
