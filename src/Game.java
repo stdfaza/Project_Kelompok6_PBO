@@ -530,7 +530,7 @@ public class Game extends GameBase implements Page {
         running = false;
         stopBGM(); // Stop music
         saveProgress(true); 
-        main.showEnding("MISSION SUCCESS", "Kamu berhasil bertahan hidup, bantuan telah datang.", "/assets/ending/image.jpg", true);
+        main.showEnding("MISSION SUCCESS", "Kamu berhasil bertahan hidup, bantuan telah datang.", "/assets/scene/background.png", true);
     }
 
     private void triggerGameOver(String reason) {

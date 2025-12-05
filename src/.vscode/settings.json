@@ -1,6 +1,11 @@
 {
-    "java.project.referencedLibraries": [
-        "lib/**/*.jar",
-        "d:\\Praktikum-PBO\\Project_Kelompok6_PBO\\driver\\mysql-connector-j-9.1.0.jar"
-    ]
+    "java.project.referencedLibraries": {
+        "include": [
+            "lib/**/*.jar",
+            "d:\\Praktikum-PBO\\Project_Kelompok6_PBO\\driver\\mysql-connector-j-9.1.0.jar"
+        ],
+        "exclude": [
+            "d:\\Praktikum-PBO\\Project_Kelompok6_PBO\\driver\\mysql-connector-j-9.1.0.jar"
+        ]
+    }
 }
