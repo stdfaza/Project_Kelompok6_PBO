@@ -67,6 +67,11 @@ public class Main extends JFrame {
     public int getCurrentAstronoutId() {
         return currentAstronoutId;
     }
+
+    public String getCurrentAstronoutUsername() {
+        return currentAstronoutUsername;
+    }
+
     public void startNewGame() {
         gamePage.startNewGame();
     }

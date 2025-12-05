@@ -20,6 +20,7 @@ public class Game extends GameBase implements Page {
     private int starvationDays;
     private boolean isGameOver;
     private boolean running = true;
+    private String name;
     
     // Scene System
     private List<Scene> scenes = new ArrayList<>();
@@ -40,13 +41,12 @@ public class Game extends GameBase implements Page {
         loadBGM("/assets/audio/meet-the-princess.wav"); 
         
         loadAssets();
-        initScene();
         setupUI();
     }
 
     private void loadAssets() {
         try {
-            java.net.URL imgUrl = getClass().getResource("/assets/scene/background.png");
+            java.net.URL imgUrl = getClass().getResource("/assets/scene/Earth_Residual.png");
             if (imgUrl != null) {
                 bgImage = new ImageIcon(imgUrl).getImage();
             }
@@ -202,6 +202,10 @@ public class Game extends GameBase implements Page {
     public void startNewGame() {
         day = 1; oxygen = 100; food = 100; power = 100; 
         starvationDays = 0; isGameOver = false; running = true;
+
+        name = main.getCurrentAstronoutUsername();
+        scenes.clear();
+        initScene();
         
         for(Scene s : scenes) s.hasPlayed = false;
         
@@ -223,6 +227,10 @@ public class Game extends GameBase implements Page {
         DatabaseConnection db = new DatabaseConnection();
         int userId = main.getCurrentAstronoutId();
         int[] data = db.loadGame(userId);
+
+        name = main.getCurrentAstronoutUsername();
+        scenes.clear();
+        initScene();
 
         if (data != null) {
             this.day = data[0];
@@ -249,22 +257,77 @@ public class Game extends GameBase implements Page {
 
     private void initScene() {
         String[][] introScript = {
-            {"Azkal", "Ugh... kepalaku sakit sekali. Dimana ini?"},
-            {"AI", "Sistem pendukung hidup: Online. Selamat pagi, Kapten Azkal."},
-            {"Azkal", "Suara itu... AI Pesawat? Apa yang terjadi? Dimana Bumi?"},
-            {"AI", "Laporan status: Meteor besar telah menghantam Bumi."},
-            {"Azkal", "Tidak mungkin... Hancur? Semuanya?"},
-            {"AI", "Afirmatif. Kita adalah satu-satunya unit yang selamat."},
-            {"Azkal", "Berapa lama kita bisa bertahan?"},
-            {"AI", "Estimasi: 10 hari sebelum kegagalan sistem total."},
-            {"Azkal", "10 hari... Baik. Mari kita mulai bekerja."}
+            {"Narrator", "Getaran mengguncang ruangan, membangunkan seseorang di dalamnya."},
+            {name, "Ugh... kepalaku sakit sekali. Dimana ini?", "left"},
+            {"AI", "Sistem pendukung darurat: Online. Selamat pagi, Kapten " + name + ".", "right"},
+            {name, "Suara itu... AI Pesawat? Apa yang terjadi? Dimana Bumi?", "left"},
+            {"AI", "Laporan status: Meteor besar telah menghantam Bumi.", "right"},
+            {name, "Tidak mungkin... Hancur? Semuanya?", "left"},
+            {"AI", "Afirmatif. Kita mungkin adalah satu-satunya unit yang selamat.", "right"},
+            {name, "Apakah kamu yakin tidak ada yang selamat selain kita?"},
+            {"AI", "Afirmatif. Tidak mendeteksi tanda kehidupan disekitar.", "right"},
+            {name, "Berapa lama kita bisa bertahan?", "left"},
+            {"AI", "Estimasi: 10 hari sebelum kegagalan sistem total.", "right"},
+            {name, "10 hari... Namun, apa yang akan terjadi setelah itu.", "left"},
+            {name, "....", "left"}
         };
 
         scenes.add(new Scene(1, 
-            "/assets/scene/background.png", 
+            "/assets/scene/Earth_Residual.png", 
             "/assets/scene/astronout.png", 
             "/assets/scene/ai.png", 
-            introScript
+            introScript,
+            "/assets/audio/slow-travel.wav"
+        ));
+
+        String[][] day2 = {
+            {name, "AI, apakah engkau bisa menceritakan lebih detail tentang meteor itu?", "left"},
+            {"AI", "Konfirmasi: Sekitar tanggal 5 Desember 2112, sebuah portal terbuka disekitar Bumi.", "right"},
+            {"AI", "Membuat Bumi hancur dalam sekejap, tanpa adanya peringatan.", "right"},
+            {name, "... Kenapa ini terjadi padaku?", "left"}
+        };
+
+        scenes.add(new Scene(2, 
+            "/assets/scene/Earth_Destroyed.png", 
+            "/assets/scene/astronout.png", 
+            "/assets/scene/ai.png", 
+            day2,
+            "/assets/audio/in-the-wreckage.wav"
+        ));
+
+        String[][] day5 = {
+            {"AI", "Laporan: Mendeteksi tanda kehidupan.", "right"},
+            {name, "Apakah itu benar?", "left"},
+            {"AI", "Afirmatif. Namun jaraknya terlalu jauh. Apakah anda ingin mengirim sinyal?", "right"},
+            {name, "Tentu saja, kirim sinyal secepatnya!!!", "left"},
+            {"AI", "Perintah diterima. Mengirim sinyal...", "right"},
+        };
+
+        scenes.add(new Scene(5, 
+            "/assets/scene/Earth_Residual.png", 
+            "/assets/scene/astronout.png", 
+            "/assets/scene/ai.png", 
+            day5,
+            "/assets/audio/loading.wav"
+        ));
+
+        String[][] day7 = {
+            {name, "Apakah mereka benar-benar menerima sinyal kita?", "left"},
+            {"AI", "Laporan: Belum ada jawaban.", "right"},
+            {name, "Mungkin aku harus memulai menulis sesuatu. AI berikan aku sebuah catatan.", "left"},
+            {"AI", "Perintah dikonfirmasi,", "right"},
+            {"Narrator", "Dalam catatannya: ia menulis sebuah perkataan."},
+            {"Narrator", "Bila ini adalah catatan terakhirku, aku hanya ingin berkata, aku rindu keluargaku."},
+            {"Narrator", "Seandainya, aku tidak kabur dari rumah."},
+            {"Narrator", "mungkin aku akan memiliki akhir bersama mereka."}
+        };
+
+        scenes.add(new Scene(7, 
+            "/assets/scene/Earth_Residual.png", 
+            "/assets/scene/astronout.png", 
+            "/assets/scene/ai.png", 
+            day7,
+            "/assets/audio/His_Theme.wav"
         ));
     }
 
@@ -467,7 +530,7 @@ public class Game extends GameBase implements Page {
         running = false;
         stopBGM(); // Stop music
         saveProgress(true); 
-        main.showEnding("MISSION SUCCESS", "Kamu berhasil bertahan hidup!", "/assets/ending/image.jpg", true);
+        main.showEnding("MISSION SUCCESS", "Kamu berhasil bertahan hidup, bantuan telah datang.", "/assets/ending/image.jpg", true);
     }
 
     private void triggerGameOver(String reason) {
@@ -475,7 +538,7 @@ public class Game extends GameBase implements Page {
         running = false;
         stopBGM(); // Stop music
         saveProgress(true);
-        main.showEnding("GAME OVER", reason, "/assets/scene/background2.png", false);
+        main.showEnding("GAME OVER", reason, "/assets/scene/page.png", false);
     }
 
     // --- AUDIO HELPER METHODS ---

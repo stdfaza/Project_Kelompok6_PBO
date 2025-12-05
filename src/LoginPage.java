@@ -271,7 +271,6 @@ public class LoginPage extends JPanel implements Page {
 
     public void stopBGM() {
         bgmClip.stop();
-            
     }
 
     @Override

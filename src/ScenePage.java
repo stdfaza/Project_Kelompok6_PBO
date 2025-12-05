@@ -1,11 +1,15 @@
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class ScenePage extends JPanel {
+public class ScenePage extends JPanel implements Page {
     private Main main;
     private Scene scene;
     private int dialogIndex = 0;
+    private Clip bgmClip;
 
     public ScenePage(Main main) {
         this.main = main;
@@ -21,6 +25,7 @@ public class ScenePage extends JPanel {
                 
                 // Cek apakah dialog sudah habis
                 if(dialogIndex >= scene.script.length) {
+                    stopBGM();
                     main.showGame(); 
                 } else {
                     repaint(); 
@@ -32,6 +37,12 @@ public class ScenePage extends JPanel {
     public void loadScene(Scene scene) {
         this.scene = scene;
         this.dialogIndex = 0;
+
+        if (scene.sceneClipPath != null) {
+            loadBGM(scene.sceneClipPath);
+            bgmClip.loop(Clip.LOOP_CONTINUOUSLY);
+            bgmClip.start();
+        }
         repaint();
     }
 
@@ -52,24 +63,29 @@ public class ScenePage extends JPanel {
         // Ambil Data Dialog Saat Ini
         String speaker = "";
         String text = "";
-        
+        String position = "left"; // default
+
         if (dialogIndex < scene.script.length) {
             speaker = scene.script[dialogIndex][0];
             text = scene.script[dialogIndex][1];
+            if (scene.script[dialogIndex].length > 2) {
+                position = scene.script[dialogIndex][2];  // "left" atau "right"
+            }
         }
 
-        // 2. Gambar Karakter (Bergantian berdasarkan Speaker)
-        if (speaker.equalsIgnoreCase("AI")) {
-            // Tampilkan AI di sebelah Kanan
-            if (scene.aiCharacter != null) {
-                // Posisi agak ke kanan (Width - 400 - margin)
-                int xPos = getWidth() - 450; 
-                g.drawImage(scene.aiCharacter, xPos, 100, 400, 500, this);
-            }
-        } else {
-            // Tampilkan Astronot di sebelah Kiri
-            if (scene.character != null) {
-                g.drawImage(scene.character, 50, 100, 400, 500, this);
+        // 2. Gambar Karakter Berdasarkan Posisi
+        Image characterImage = scene.character;
+        Image character2Image = scene.character2;
+        
+        if (!speaker.equalsIgnoreCase("Narrator")) {
+            if (position.equalsIgnoreCase("right")) {
+                if (character2Image != null) {
+                    g.drawImage(character2Image, getWidth() - 450, 100, 400, 500, this);
+                }
+            } else {
+                if (characterImage != null) {
+                    g.drawImage(characterImage, 50, 100, 400, 500, this);
+                }
             }
         }
 
@@ -98,5 +114,28 @@ public class ScenePage extends JPanel {
         g.setFont(new Font("Arial", Font.ITALIC, 14));
         g.setColor(Color.GRAY);
         g.drawString("[Klik untuk lanjut]", getWidth() - 200, getHeight() - 70);
+    }
+
+    @Override
+    public void loadBGM(String path) {
+        try {
+            if (bgmClip != null) { bgmClip.stop(); bgmClip.close(); }
+
+            AudioInputStream audioStream =
+                    AudioSystem.getAudioInputStream(getClass().getResource(path));
+
+            bgmClip = AudioSystem.getClip();
+            bgmClip.open(audioStream);
+
+        } catch (Exception e) {
+            System.out.println("Error load BGM: " + path + " | " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void stopBGM() {
+        if (bgmClip != null) {
+            bgmClip.stop();
+        }
     }
 }

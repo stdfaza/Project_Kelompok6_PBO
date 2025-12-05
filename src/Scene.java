@@ -5,27 +5,30 @@ public class Scene {
     // Trigger Hari
     public int triggerDay;
 
-    // Aset Gambar
+    // Aset Gambar dan Audio
     public Image background;
-    public Image character;   // Gambar Astronot
-    public Image aiCharacter; // Gambar AI (Baru)
+    public Image character;
+    public Image character2;
+    public String sceneClipPath;
 
-    // Data Percakapan: {{Speaker, Text}, {Speaker, Text}}
+    // Data Percakapan: {{Speaker, Text, Position}, {Speaker, Text, Position}}
     public String[][] script; 
 
     // Status Check
     public boolean hasPlayed = false;
 
     // Constructor Baru
-    public Scene(int triggerDay, String bgPath, String charPath, String aiPath, String[][] script) {
+    public Scene(int triggerDay, String bgPath, String charPath, String char2Path, String[][] script, String sceneClipPath) {
         this.triggerDay = triggerDay;
         this.script = script;
+        this.sceneClipPath = sceneClipPath;
         
         // Load gambar
         try {
             if (bgPath != null) this.background = new ImageIcon(getClass().getResource(bgPath)).getImage();
             if (charPath != null) this.character = new ImageIcon(getClass().getResource(charPath)).getImage();
-            if (aiPath != null) this.aiCharacter = new ImageIcon(getClass().getResource(aiPath)).getImage();
+            if (char2Path != null) this.character2 = new ImageIcon(getClass().getResource(char2Path)).getImage();
+
         } catch (Exception e) {
             System.out.println("Error loading scene images: " + e.getMessage());
         }
